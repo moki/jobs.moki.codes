@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(etl)
+project(daemon)
 
 SET (CMAKE_C_COMPILER             "/usr/bin/clang")
 SET (CMAKE_C_FLAGS                "-Wall -std=c99")
@@ -33,7 +33,7 @@ find_package(Threads REQUIRED)
 find_package(Poco REQUIRED COMPONENTS Util Foundation Crypto Net NetSSL)
 find_package(OpenSSL REQUIRED)
 
-add_executable(etl ${SOURCES})
+add_executable(daemon ${SOURCES})
 
-target_link_libraries(etl PRIVATE Threads::Threads)
-target_link_libraries(etl PUBLIC Poco::Util Poco::Foundation Poco::Net Poco::Crypto Poco::NetSSL)
+target_link_libraries(daemon PRIVATE Threads::Threads)
+target_link_libraries(daemon PUBLIC Poco::Util Poco::Foundation Poco::Net Poco::Crypto Poco::NetSSL)
