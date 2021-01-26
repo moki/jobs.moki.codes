@@ -84,7 +84,7 @@ std::string moikrug::parse_salary(auto &salary) {
 
         auto err = salary["currency"].get(currency);
         if (err)
-                return nullstr + "\t"s + "[0,0]"s;
+                return nullstr + "\t"s + nullstr /*"[0,0]"s*/;
 
         err = salary["from"].get(from);
         if (!err)
@@ -110,7 +110,8 @@ std::string moikrug::parse_salary(auto &salary) {
                 break;
         }
         default: {
-                range += "0,0]"s;
+                // range += "0,0]"s;
+                range = nullstr;
                 break;
         }
         }
