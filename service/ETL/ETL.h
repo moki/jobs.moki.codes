@@ -3,33 +3,52 @@
 #include <future>
 #include <iostream>
 
+#include "extractor/extractor.h"
+#include "loader/loader.h"
+#include "transformer/transformer.h"
+
 namespace ETL {
 
-template <typename E, typename T, typename L> class ETL {
-        ETL &operator=(const ETL &other) {}
-        ETL(const ETL &other) {}
+class ETL {
+        ETL &operator=(const ETL &other) = delete;
+        ETL(const ETL &other) = delete;
 
     public:
-        ETL(E &extractor, T &transformer, L &loader);
+        ETL(extractor::base &extractor, transformer::base &transformer,
+            loader::base &loader);
 
         std::future<void> run();
 
-        E &extractor;
-        T &transformer;
-        L &loader;
+        void set_extractor(extractor::base &extractor);
+        void set_transformer(transformer::base &transformer);
+        void set_loader(loader::base &loader);
+
+        std::reference_wrapper<extractor::base> extractor;
+        std::reference_wrapper<transformer::base> transformer;
+        std::reference_wrapper<loader::base> loader;
 };
 
-template <typename E, typename T, typename L>
-ETL<E, T, L>::ETL(E &extractor, T &transformer, L &loader)
-        : extractor(extractor), transformer(transformer), loader(loader){};
+ETL::ETL(extractor::base &extractor, transformer::base &transformer,
+         loader::base &loader)
+        : extractor(std::ref(extractor)), transformer(std::ref(transformer)),
+          loader(std::ref(loader)){};
 
-template <typename E, typename T, typename L>
-std::future<void> ETL<E, T, L>::run() {
+std::future<void> ETL::run() {
         return std::async(std::launch::async, [&]() {
-                auto data = extractor.extract().get();
-                auto transformed = transformer.transform(data);
-                loader.load(transformed.get());
+                auto data = extractor.get().extract().get();
+                auto transformed = transformer.get().transform(data);
+                loader.get().load(transformed.get()).get();
         });
 }
+
+void ETL::set_extractor(extractor::base &extractor) {
+        this->extractor = std::ref(extractor);
+}
+
+void ETL::set_transformer(transformer::base &transformer) {
+        this->transformer = std::ref(transformer);
+}
+
+void ETL::set_loader(loader::base &loader) { this->loader = std::ref(loader); }
 
 } // namespace ETL

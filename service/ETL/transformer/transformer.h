@@ -8,7 +8,8 @@ namespace transformer {
 
 class base {
     public:
-        std::future<std::string> transform();
+        virtual std::future<std::string>
+        transform(std::string_view &&message) = 0;
 };
 
 } // namespace transformer
