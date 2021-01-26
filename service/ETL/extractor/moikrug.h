@@ -9,11 +9,12 @@ namespace extractor {
 class moikrug : public https {
     public:
         using https::https;
-        moikrug(std::string_view &&url);
+        moikrug();
+
     private:
 };
 
-moikrug::moikrug(std::string_view &&url) : https(std::move(url), 1, 1) {}
+moikrug::moikrug() {}
 
 } // namespace extractor
 } // namespace ETL

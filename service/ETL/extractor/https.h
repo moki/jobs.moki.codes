@@ -2,6 +2,7 @@
 
 #include "extractor.h"
 #include <future>
+#include <iostream>
 #include <numeric>
 #include <string>
 
@@ -37,19 +38,17 @@ class https : public virtual base {
                 return response;
         };
 
-        inline static auto batch_reqs(std::string url, size_t page_start,
-                                      size_t pages_total) {
+        inline static auto batch_reqs = [](auto self) {
                 std::vector<std::future<std::string>> responses{};
-                responses.reserve(pages_total);
-                size_t i = page_start;
+                responses.reserve(self->urls.size());
 
-                for (; i < pages_total; i++) {
-                        responses.push_back(
-                                std::async(std::launch::async, make_req,
-                                           url + std::to_string(i)));
+                size_t i = 0;
+                for (auto &url : self->urls) {
+                        responses.push_back(std::async(std::launch::async,
+                                                       self->make_req, url));
                         if (!(i % 10))
-                                std::this_thread::sleep_for(
-                                        std::chrono::milliseconds(200));
+                                std::this_thread::sleep_for(self->req_delay);
+                        i++;
                 }
 
                 auto response =
@@ -63,40 +62,54 @@ class https : public virtual base {
                                 return responses;
                         }).get();
 
-                return std::accumulate(response.begin() + 1, response.end(),
-                                       std::move("[" + response[0]),
-                                       [](std::string a, std::string b) {
-                                               return std::move(a) +
-                                                      std::move(",") +
-                                                      std::move(b);
-                                       }) +
-                       std::move("]");
-        }
+                return self->reducer(response);
+        };
 
     public:
-        https(std::string_view &&url, size_t start, size_t pages_total);
-        std::future<std::string> extract() override;
+        https(size_t delay);
+        https();
 
-        void set_pages_total(size_t);
+        std::future<std::string> extract() override;
+        void add_url(std::string &url);
+        void reset_urls();
+        void set_reducer(auto fn);
+        void set_req_delay(size_t ms);
 
     private:
-        size_t page_start;
-        size_t pages_total;
-
-        std::string url;
+        std::chrono::milliseconds req_delay;
+        std::function<std::string(std::vector<std::string>)> reducer;
+        std::vector<std::string> urls;
 };
 
-https::https(std::string_view &&url, size_t page_start = 0,
-             size_t pages_total = 1)
-        : url(std::move(url)), page_start(page_start),
-          pages_total(page_start + pages_total) {}
-
-std::future<std::string> https::extract() {
-        return std::async(std::launch::async, batch_reqs, url, page_start,
-                          pages_total);
+void https::set_reducer(auto fn) { reducer = fn; }
+void https::add_url(std::string &url) { urls.push_back(std::move(url)); }
+void https::reset_urls() { urls.clear(); }
+void https::set_req_delay(size_t ms) {
+        req_delay = std::chrono::milliseconds(ms);
 }
 
-void https::set_pages_total(size_t pages) { pages_total = pages + page_start; }
+https::https(size_t delay) : req_delay{std::chrono::milliseconds(delay)} {};
+https::https() : req_delay{std::chrono::milliseconds(250)} {};
+
+std::future<std::string> https::extract() {
+        if (!urls.size()) {
+                std::cerr << "add sources to extract from" << std::endl
+                          << "with extractor.add_url(std::string &url) method"
+                          << std::endl;
+                exit(1);
+        }
+
+        if (!reducer) {
+                std::cerr << "set reducer to accumulate responses" << std::endl
+                          << "with "
+                             "extractor.set_reducer(std::function<std::string("
+                             "std::vector<std::string>)>) method"
+                          << std::endl;
+                exit(1);
+        }
+
+        return std::async(std::launch::async, batch_reqs, this);
+}
 
 } // namespace extractor
 } // namespace ETL
