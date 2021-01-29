@@ -25,9 +25,11 @@ SET (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
 
 include_directories(lib)
 
+find_library(GUMBO gumbo)
+
 file(GLOB SOURCES "*.cpp" "*.h" "**/*.cpp" "**/*.h")
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++abi -lgumbo")
 
 find_package(Threads REQUIRED)
 find_package(Poco REQUIRED COMPONENTS Util Foundation Crypto Net NetSSL)

@@ -32,10 +32,12 @@ class https : public virtual base {
                 std::ostream &ostr = session.sendRequest(req);
                 Poco::Net::HTTPResponse res;
 
+                std::cout << res.getStatus() << std::endl;
+
                 std::istream &rs = session.receiveResponse(res);
                 Poco::StreamCopier::copyToString(rs, response);
 
-                return response;
+                return std::move(response);
         };
 
         inline static auto batch_reqs = [](auto self) {
@@ -44,10 +46,12 @@ class https : public virtual base {
 
                 size_t i = 0;
                 for (auto &url : self->urls) {
+                        std::cout << "making req: " << i << std::endl;
                         responses.push_back(std::async(std::launch::async,
                                                        self->make_req, url));
                         if (!(i % 10))
                                 std::this_thread::sleep_for(self->req_delay);
+
                         i++;
                 }
 
@@ -56,11 +60,30 @@ class https : public virtual base {
                                 std::vector<std::string> responses{};
                                 responses.reserve(rs.size());
 
-                                for (auto &r : rs)
+                                size_t i = 0;
+                                for (auto &r : rs) {
                                         responses.push_back(r.get());
+                                        std::cout << "joined req: " << i++
+                                                  << std::endl;
+                                }
 
                                 return responses;
                         }).get();
+
+                std::cout << "joined all requests" << std::endl;
+
+                /*
+                std::string response_str{};
+
+                response_str += *(response.begin());
+
+                for (auto it = response.begin() + 1; it != response.end();
+                     it++) {
+                        response_str += '\n' + *it;
+                }
+
+                return response_str;
+                */
 
                 return self->reducer(response);
         };

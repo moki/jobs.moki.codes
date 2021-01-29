@@ -35,8 +35,11 @@ ETL::ETL(extractor::base &extractor, transformer::base &transformer,
 
 std::future<void> ETL::run() {
         return std::async(std::launch::async, [&]() {
+                std::cout << "extracting..." << std::endl;
                 auto data = extractor.get().extract().get();
+                std::cout << "transforming..." << std::endl;
                 auto transformed = transformer.get().transform(data);
+                std::cout << "loading..." << std::endl;
                 loader.get().load(transformed.get()).get();
         });
 }
