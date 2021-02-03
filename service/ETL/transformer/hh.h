@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cwctype>
 #include <deque>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <numeric>
@@ -20,6 +21,8 @@
 #include "../../common/utility/split.h"
 #include "../../common/utility/trim.h"
 
+size_t failed = 0;
+
 using namespace std::string_literals;
 
 namespace ETL {
@@ -28,8 +31,11 @@ namespace transformer {
 struct hash_pair {
         template <typename T1, typename T2>
         size_t operator()(const std::pair<T1, T2> &pair) const {
+                /*
                 return std::hash<T1>()(pair.first) ^
                        std::hash<T2>()(pair.second);
+                */
+                return std::hash<T1>()(pair.first + pair.second);
         }
 };
 
@@ -39,7 +45,8 @@ class hh : public base {
 
         hh();
 
-        std::future<std::string> transform(std::string_view &&message);
+        std::vector<std::future<std::string>>
+        transform(std::vector<std::future<std::string>> input);
 
         void set_parse_mode(mode mode);
 
@@ -52,7 +59,7 @@ class hh : public base {
         static inline std::string job_title_class = "vacancy-title"s;
         static inline std::string job_salary_class = "vacancy-salary"s;
         static inline std::string job_skills_class = "bloko-tag_inline"s;
-        static inline std::string job_id_class = "vacancy-action_stretched"s;
+        static inline std::string job_id_attr = "vacancy-response-link-top"s;
         static inline std::string job_remote_attr =
                 "vacancy-view-employment-mode"s;
         static inline std::string job_date_class = "vacancy-creation-time"s;
@@ -76,6 +83,7 @@ class hh : public base {
         std::string parse_page_number(auto node);
         size_t parse_pages_total();
 
+        std::string parse(std::string html);
         std::string parse_job_url(auto node);
         std::vector<std::string> parse_job_urls();
         std::string parse_job_title();
@@ -113,14 +121,17 @@ class hh : public base {
                 if (!attrs.length)
                         return;
 
-                auto attr = gumbo_get_attribute(&attrs, selector.first.c_str());
+                auto attr_key = selector.first.c_str();
+
+                auto attr = gumbo_get_attribute(&attrs, attr_key);
                 if (!attr)
                         return;
 
-                auto attr_tokens = split(std::string{attr->value}, ' ');
+                auto attr_str = std::string{attr->value};
+                auto attr_tokens = split(attr_str, ' ');
 
                 for (auto &attr_token : attr_tokens) {
-                        if (attr_token == selector.second) {
+                        if (!attr_token.compare(selector.second)) {
                                 auto nodes_it =
                                         self->nodes_by_selector.find(selector);
                                 if (nodes_it != self->nodes_by_selector.end())
@@ -391,24 +402,14 @@ std::string hh::parse_job_salary() {
 std::string hh::parse_job_id() {
         std::string id{};
 
-        auto selector = std::make_pair("class"s, job_id_class);
+        auto selector = std::make_pair("data-qa"s, job_id_attr);
 
         auto it = nodes_by_selector.find(selector);
         if (it == nodes_by_selector.end())
                 return std::move(id);
         if (!it->second.size())
                 return std::move(id);
-
-        auto div_node = it->second[0];
-
-        if (div_node->type != GUMBO_NODE_ELEMENT)
-                return std::move(id);
-
-        if (!div_node->v.element.children.length)
-                return std::move(id);
-
-        auto id_node =
-                static_cast<GumboNode *>(div_node->v.element.children.data[0]);
+        auto id_node = it->second[0];
         if (id_node->type != GUMBO_NODE_ELEMENT)
                 return std::move(id);
 
@@ -444,41 +445,51 @@ std::string hh::parse_job_date() {
         auto it = nodes_by_selector.find(selector);
         if (it == nodes_by_selector.end())
                 return std::move(date);
+
         if (!it->second.size())
                 return std::move(date);
 
         auto p_node = it->second[0];
 
-        if (p_node->type != GUMBO_NODE_ELEMENT)
-                return std::move(date);
-
         auto children = p_node->v.element.children.data;
         auto children_size = p_node->v.element.children.length;
 
-        if (children_size < 2)
+        if (children_size < 3)
                 return std::move(date);
 
-        auto date_str =
-                std::string{static_cast<GumboNode *>(children[2])->v.text.text};
+        auto text_node = static_cast<GumboNode *>(children[2]);
+        if (text_node->type != GUMBO_NODE_TEXT)
+                return std::move(date);
+
+        auto date_str = std::string{text_node->v.text.text};
+        if (date_str.length() < 2)
+                return std::move(date);
 
         date = [date = std::move(date_str)]() {
                 std::string escaped{};
                 std::vector<std::string> tokens{};
 
-                auto token_it = date.begin();
-                for (auto it = date.begin(); it != date.end() - 2; it += 2) {
-                        size_t first = *(it);
-                        size_t second = *(it + 1);
+                size_t lspace_code = 18446744073709551554u;
+                size_t rspace_code = 18446744073709551520u;
 
-                        if (first == 18446744073709551554u &&
-                            second == 18446744073709551520u) {
-                                tokens.push_back(std::string(
-                                        token_it, token_it + (it - token_it)));
-                                token_it = it + 2;
+                size_t i = 0, j = 0;
+
+                size_t previous_code = 0;
+                for (wchar_t c : date) {
+                        size_t code = c;
+
+                        if (previous_code == lspace_code &&
+                            code == rspace_code) {
+                                tokens.push_back(date.substr(j, i - j - 1));
+
+                                j = i + 1;
                         }
+
+                        previous_code = code;
+                        i++;
                 }
 
-                tokens.push_back(std::string(token_it, date.end()));
+                tokens.push_back(date.substr(j, date.length() - j));
 
                 if (tokens.size() != 3)
                         return std::move(escaped);
@@ -624,115 +635,159 @@ std::string hh::parse_job_remote() {
         return std::move(remote);
 }
 
-std::future<std::string> hh::transform(std::string_view &&html) {
-        return std::async(std::launch::async, [&]() {
-                GumboOptions options = kGumboDefaultOptions;
-                GumboOutput *output = gumbo_parse_with_options(
-                        &options, html.data(), html.length());
+std::string hh::parse(std::string html) {
+        GumboOptions options = kGumboDefaultOptions;
+        GumboOutput *output =
+                gumbo_parse_with_options(&options, html.data(), html.length());
 
-                std::string parsed{};
+        std::string parsed{};
 
-                switch (parse_mode) {
-                case mode::meta: {
-                        add_selector(std::make_pair("class"s, paginator_class));
+        switch (parse_mode) {
+        case mode::meta: {
+                add_selector(std::make_pair("class"s, paginator_class));
 
-                        dom_walker(output->root, select);
+                dom_walker(output->root, select);
 
-                        parsed = std::to_string(parse_pages_total());
+                parsed = std::to_string(parse_pages_total());
 
-                        parse_mode = mode::links;
-                        selectors.clear();
-                        nodes_by_selector.clear();
+                break;
+        }
+        case mode::links: {
+                add_selector(std::make_pair("class"s, job_link_class));
+
+                dom_walker(output->root, select);
+
+                auto job_urls = parse_job_urls();
+
+                if (!job_urls.size())
+                        return std::move(parsed);
+
+                parsed += *(job_urls.begin());
+                for (auto it = job_urls.begin() + 1; it != job_urls.end();
+                     ++it) {
+                        parsed += ("\n"s + *it);
+                }
+
+                break;
+        }
+        case mode::job: {
+                add_selector(std::make_pair("class"s, job_title_class));
+
+                add_selector(std::make_pair("class"s, job_salary_class));
+
+                add_selector(std::make_pair("data-qa"s, job_id_attr));
+
+                add_selector(std::make_pair("class"s, job_date_class));
+
+                add_selector(std::make_pair("class"s, job_skills_class));
+
+                add_selector(std::make_pair("class"s, job_location_attr));
+
+                add_selector(std::make_pair("data-qa"s, job_location_attr));
+
+                add_selector(std::make_pair("data-qa"s, job_remote_attr));
+
+                dom_walker(output->root, select);
+
+                auto job_title = parse_job_title();
+                auto job_salary = parse_job_salary();
+                auto job_id = parse_job_id();
+                auto job_date = parse_job_date();
+                auto job_skills = parse_job_skills();
+                auto job_location = parse_job_location();
+                auto job_remote = parse_job_remote();
+
+                if (!job_id.length() || !job_date.length()) {
+                        auto faulty = (job_id.length() ? "job date" : "job id");
+                        std::cerr << "failed to parse field: " << faulty
+                                  << std::endl;
+
+                        failed++;
 
                         break;
                 }
-                case mode::links: {
-                        add_selector(std::make_pair("class"s, job_link_class));
 
-                        dom_walker(output->root, select);
+                parsed += job_id + "\t"s;
 
-                        auto job_urls = parse_job_urls();
+                parsed += job_date + "\t"s;
 
-                        parse_mode = mode::job;
-                        selectors.clear();
-                        nodes_by_selector.clear();
+                parsed += job_title + "\t"s;
 
-                        if (!job_urls.size())
-                                return std::move(parsed);
+                parsed += job_skills + "\t"s;
 
-                        parsed += *(job_urls.begin());
-                        for (auto it = job_urls.begin() + 1;
-                             it != job_urls.end(); ++it) {
-                                parsed += ("\n"s + *it);
+                parsed += job_salary + "\t"s;
+
+                parsed += job_location + "\t"s;
+
+                parsed += job_remote + "\n"s;
+
+                break;
+        }
+        default: {
+                std::cerr << "parse mode not implemented" << std::endl;
+                exit(1);
+        }
+        }
+
+        gumbo_destroy_output(&options, output);
+
+        return std::move(parsed);
+};
+
+std::vector<std::future<std::string>>
+hh::transform(std::vector<std::future<std::string>> input) {
+        std::vector<std::future<std::string>> output{};
+        output.reserve(input.size());
+
+        std::vector<std::string> parsed{};
+        parsed.reserve(input.size());
+
+        for (auto &future : input) {
+                auto html = future.get();
+
+                selectors.clear();
+                nodes_by_selector.clear();
+
+                parsed.push_back(parse(html));
+        }
+
+        switch (parse_mode) {
+        case mode::meta: {
+                auto data = parsed.back();
+
+                output.push_back(
+                        std::async(std::launch::async, [=]() { return data; }));
+
+                parse_mode = mode::links;
+
+                break;
+        }
+        case mode::links: {
+                for (auto data : parsed) {
+                        auto urls = split(data, '\n');
+
+                        for (auto url : urls) {
+                                output.push_back(
+                                        std::async(std::launch::async,
+                                                   [=]() { return url; }));
                         }
-
-                        break;
-                }
-                case mode::job: {
-                        add_selector(std::make_pair("class"s, job_title_class));
-
-                        add_selector(
-                                std::make_pair("class"s, job_salary_class));
-
-                        add_selector(std::make_pair("class"s, job_id_class));
-
-                        add_selector(std::make_pair("class"s, job_date_class));
-
-                        add_selector(
-                                std::make_pair("class"s, job_skills_class));
-
-                        add_selector(
-                                std::make_pair("class"s, job_location_attr));
-
-                        add_selector(
-                                std::make_pair("data-qa"s, job_location_attr));
-
-                        add_selector(
-                                std::make_pair("data-qa"s, job_remote_attr));
-
-                        dom_walker(output->root, select);
-
-                        auto job_title = parse_job_title();
-                        auto job_salary = parse_job_salary();
-                        auto job_id = parse_job_id();
-                        auto job_date = parse_job_date();
-                        auto job_skills = parse_job_skills();
-                        auto job_location = parse_job_location();
-                        auto job_remote = parse_job_remote();
-
-                        parse_mode = mode::meta;
-                        selectors.clear();
-                        nodes_by_selector.clear();
-
-                        if (!job_id.length() || !job_date.length())
-                                break;
-
-                        parsed += job_id + "\t"s;
-
-                        parsed += job_date + "\t"s;
-
-                        parsed += job_title + "\t"s;
-
-                        parsed += job_skills + "\t"s;
-
-                        parsed += job_salary + "\t"s;
-
-                        parsed += job_location + "\t"s;
-
-                        parsed += job_remote + "\n"s;
-
-                        break;
-                }
-                default: {
-                        std::cerr << "parse mode not implemented" << std::endl;
-                        exit(1);
-                }
                 }
 
-                gumbo_destroy_output(&options, output);
+                parse_mode = mode::job;
+                break;
+        }
+        case mode::job: {
+                for (auto data : parsed) {
+                        output.push_back(std::async(std::launch::async,
+                                                    [=]() { return data; }));
+                }
 
-                return parsed;
-        });
+                parse_mode = mode::meta;
+                break;
+        }
+        }
+
+        return std::move(output);
 }
 
 void hh::set_parse_mode(mode mode) { parse_mode = mode; }

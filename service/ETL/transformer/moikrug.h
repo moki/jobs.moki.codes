@@ -13,26 +13,28 @@ namespace ETL {
 namespace transformer {
 
 class moikrug : public base {
-    public:
-        moikrug();
-        std::future<std::string> transform(std::string_view &&message);
+        static inline std::string nullstr = "\\N"s;
 
-        bool metaparser;
+    public:
+        enum class mode { meta, job };
+
+        moikrug();
+        std::vector<std::future<std::string>>
+        transform(std::vector<std::future<std::string>> input);
 
     private:
-        std::string parse_meta(auto &);
+        simdjson::dom::parser parser;
+        mode parse_mode;
+
+        std::string parse_pages_total(auto &meta);
         std::string parse_job(auto &);
         std::string parse_skills(auto &);
         std::string parse_salary(auto &);
         std::string_view parse_date(auto &);
         std::string parse_locations(auto &);
-        simdjson::dom::parser parser;
-        std::string nullstr;
 };
 
-std::string moikrug::parse_meta(auto &meta) {
-        metaparser = false;
-
+std::string moikrug::parse_pages_total(auto &meta) {
         return std::move(
                 std::to_string(static_cast<size_t>(meta["totalPages"])));
 }
@@ -84,7 +86,7 @@ std::string moikrug::parse_salary(auto &salary) {
 
         auto err = salary["currency"].get(currency);
         if (err)
-                return nullstr + "\t"s + nullstr /*"[0,0]"s*/;
+                return nullstr + "\t"s + nullstr;
 
         err = salary["from"].get(from);
         if (!err)
@@ -110,7 +112,6 @@ std::string moikrug::parse_salary(auto &salary) {
                 break;
         }
         default: {
-                // range += "0,0]"s;
                 range = nullstr;
                 break;
         }
@@ -182,46 +183,66 @@ std::string moikrug::parse_job(auto &job) {
         return std::move(parsed + "\n"s);
 }
 
-std::future<std::string> moikrug::transform(std::string_view &&message) {
-        return std::async(std::launch::async, [&]() {
-                simdjson::dom::array pages;
-                std::string job_data{};
-                size_t i = 0;
+std::vector<std::future<std::string>>
+moikrug::transform(std::vector<std::future<std::string>> input) {
+        std::string data{};
 
-                auto padded = std::string(simdjson::padded_string(message));
-                auto err = parser.parse(padded).get(pages);
+        for (auto &future : input) {
+                auto datum = future.get();
 
-                if (err) {
-                        std::cerr << err << std::endl;
-                        return ""s;
-                }
+                data += datum + "\n"s;
+        }
 
-                for (auto page : pages) {
+        data = std::string(simdjson::padded_string(data));
+        simdjson::dom::document_stream pages = parser.parse_many(data);
+
+        std::vector<std::string> parsed{};
+
+        switch (parse_mode) {
+        case mode::meta:
+                for (simdjson::dom::element page : pages) {
                         auto meta = page["meta"];
 
-                        if (metaparser)
-                                return parse_meta(meta);
+                        auto pages_total = parse_pages_total(meta);
 
+                        parsed.push_back(pages_total);
+
+                        break;
+                }
+
+                parse_mode = mode::job;
+                break;
+        case mode::job:
+                for (simdjson::dom::element page : pages) {
                         simdjson::dom::array jobs = page["list"];
 
                         for (auto job_element : jobs) {
                                 simdjson::dom::object job;
-                                err = job_element.get(job);
+                                auto err = job_element.get(job);
 
-                                if (err) {
+                                if (err)
                                         std::cerr << err << std::endl;
-                                        return std::move(std::string(message));
-                                }
 
-                                job_data += parse_job(job);
+                                auto parsed_job = parse_job(job);
+                                parsed.push_back(parsed_job);
                         }
                 }
 
-                return std::move(job_data);
-        });
+                parse_mode = mode::meta;
+                break;
+        }
+
+        std::vector<std::future<std::string>> output{};
+
+        for (auto data : parsed) {
+                output.push_back(
+                        std::async(std::launch::async, [=]() { return data; }));
+        }
+
+        return std::move(output);
 }
 
-moikrug::moikrug() : metaparser{true}, nullstr{"\\N"} {}
+moikrug::moikrug() : parse_mode{moikrug::mode::meta} {}
 
 } // namespace transformer
 } // namespace ETL

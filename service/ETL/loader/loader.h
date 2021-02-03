@@ -1,13 +1,15 @@
 #pragma once
 
 #include <future>
+#include <vector>
 
 namespace ETL {
 namespace loader {
 
 class base {
     public:
-        virtual std::future<void> load(std::string_view &&message) = 0;
+        virtual std::vector<std::future<std::string>>
+        load(std::vector<std::future<std::string>> input) = 0;
 };
 
 } // namespace loader
