@@ -13,9 +13,9 @@ Each component consists of extractor, transformer and loader.
 
 ## ETL's
 
-* a
-* b
-* c
+* moikrug
+* hh
+* telegram profunctor
 
 ## folder structure
 
@@ -31,9 +31,9 @@ extractor - extracts data from source
 
 ### data sources
 
-* a
-* b
-* c
+* hh(https)
+* moikrug(https)
+* telegram profunctor(https)
 
 ## transformer
 
@@ -41,9 +41,9 @@ transformer - transforms data to the appropriate form i.e cleansing
 
 ### transformers
 
-* a
-* b
-* c
+* hh(html)
+* moikrug(json)
+* telegram profunctor(html)
 
 ## loader
 
@@ -51,6 +51,6 @@ loader - loads data into the data lake
 
 ### data lakes
 
-* a
-* b
-* c
+* hh(fs)
+* moikrug(fs)
+* telegram profunctor(fs)
