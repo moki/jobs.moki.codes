@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <fstream>
 #include <future>
-#include <iostream>
 #include <string>
 
 namespace ETL {
@@ -24,7 +23,6 @@ class fs : public virtual base {
 
 std::vector<std::future<std::string>>
 fs::load(std::vector<std::future<std::string>> input) {
-        std::cout << "loading" << std::endl;
         std::vector<std::future<std::string>> loaded{};
         loaded.reserve(input.size());
 

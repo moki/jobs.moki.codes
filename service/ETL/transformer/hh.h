@@ -21,6 +21,8 @@
 #include "../../common/utility/split.h"
 #include "../../common/utility/trim.h"
 
+#include "html.h"
+
 size_t failed = 0;
 
 using namespace std::string_literals;
@@ -28,16 +30,16 @@ using namespace std::string_literals;
 namespace ETL {
 namespace transformer {
 
+/*
 struct hash_pair {
         template <typename T1, typename T2>
         size_t operator()(const std::pair<T1, T2> &pair) const {
-                /*
-                return std::hash<T1>()(pair.first) ^
-                       std::hash<T2>()(pair.second);
-                */
+                //return std::hash<T1>()(pair.first) ^
+                //       std::hash<T2>()(pair.second);
                 return std::hash<T1>()(pair.first + pair.second);
         }
 };
+*/
 
 class hh : public base {
     public:
