@@ -4,8 +4,7 @@
 #include <numeric>
 #include <string>
 
-#include "../lib/simdjson/simdjson.cpp"
-// #include "../lib/simdjson/simdjson.h"
+#include "../lib/simdjson/main.h"
 
 using namespace std::string_literals;
 
