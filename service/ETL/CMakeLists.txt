@@ -10,7 +10,7 @@ SET (CMAKE_C_FLAGS_RELEASE        "-O4 -DNDEBUG")
 SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
 
 SET (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
-SET (CMAKE_CXX_FLAGS                "-std=c++20 -Wc++20-compat -pedantic -g -O3 -flto=thin -mllvm -inline-threshold=1000 -fexperimental-new-pass-manager -fno-strict-aliasing")
+SET (CMAKE_CXX_FLAGS                "-std=c++20 -Wc++20-compat -pedantic -Wno-ambiguous-reversed-operator -g -O3 -flto=thin -mllvm -inline-threshold=1000 -fexperimental-new-pass-manager -fno-strict-aliasing")
 
 SET (CMAKE_CXX_FLAGS_DEBUG          "-g")
 SET (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
