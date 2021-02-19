@@ -19,7 +19,7 @@ namespace extractor {
 using namespace std::string_literals;
 
 class https : public virtual base {
-        inline static auto make_req(std::string url) {
+        inline static auto make_req(std::string url, std::string user_agent) {
                 std::string response{};
                 auto uri = Poco::URI{url};
 
@@ -28,6 +28,9 @@ class https : public virtual base {
                 Poco::Net::HTTPRequest req(Poco::Net::HTTPRequest::HTTP_GET,
                                            uri.getPathAndQuery(),
                                            Poco::Net::HTTPMessage::HTTP_1_1);
+
+                if (user_agent.length())
+                        req.set("User-Agent", user_agent);
 
                 std::ostream &ostr = session.sendRequest(req);
                 Poco::Net::HTTPResponse res;
@@ -39,6 +42,8 @@ class https : public virtual base {
         };
 
     public:
+        https(std::string_view user_agent, size_t delay);
+        https(std::string_view user_agent);
         https(size_t delay);
         https();
 
@@ -47,19 +52,32 @@ class https : public virtual base {
         void reset_urls();
         void set_req_delay(size_t ms);
 
+        std::string user_agent;
+
     private:
         std::chrono::milliseconds req_delay;
         std::vector<std::string> urls;
 };
 
+https::https(std::string_view user_agent, size_t delay)
+        : user_agent{user_agent}, req_delay{
+                                          std::chrono::milliseconds(delay)} {};
+
+https::https(std::string_view user_agent)
+        : user_agent{user_agent}, req_delay{std::chrono::milliseconds(100)} {};
+
+https::https(size_t delay)
+        : req_delay{std::chrono::milliseconds(delay)}, user_agent{} {};
+
+https::https() : req_delay{std::chrono::milliseconds(100)}, user_agent{} {};
+
 void https::add_url(std::string &url) { urls.push_back(std::move(url)); }
+
 void https::reset_urls() { urls.clear(); }
+
 void https::set_req_delay(size_t ms) {
         req_delay = std::chrono::milliseconds(ms);
 }
-
-https::https(size_t delay) : req_delay{std::chrono::milliseconds(delay)} {};
-https::https() : req_delay{std::chrono::milliseconds(100)} {};
 
 std::vector<std::future<std::string>> https::extract() {
         if (!urls.size()) {
@@ -72,13 +90,11 @@ std::vector<std::future<std::string>> https::extract() {
         std::vector<std::future<std::string>> responses{};
         responses.reserve(urls.size());
 
-        // size_t i = 0;
         for (auto &url : urls) {
-                // if (!(i++ % 10))
                 std::this_thread::sleep_for(req_delay);
 
-                responses.push_back(
-                        std::async(std::launch::async, make_req, url));
+                responses.push_back(std::async(std::launch::async, make_req,
+                                               url, user_agent));
         }
 
         return std::move(responses);
