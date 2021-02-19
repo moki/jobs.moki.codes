@@ -2,51 +2,55 @@
 #include "loader/moikrug.h"
 #include "transformer/moikrug.h"
 
-#include "extractor/hh.h"
-#include "loader/hh.h"
-#include "transformer/hh.h"
-
 #include "extractor/telegram.h"
 #include "loader/telegram.h"
 #include "transformer/profunctor.h"
 
+#include "extractor/hh.h"
+#include "loader/hh.h"
+#include "transformer/hh.h"
+
 #include "../common/utility/split.h"
 
+#include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <set>
+#include <streambuf>
 #include <string>
 
-#include <fstream>
-#include <streambuf>
+#include "lib/date/main.h"
 
 using namespace std::string_literals;
-
-constexpr auto moikrug_url =
-        "https://career.habr.com/api/frontend/vacancies?q=&page=";
+using namespace std::chrono;
+using namespace date;
 
 static std::filesystem::path data_dir{std::filesystem::current_path() /
                                       std::filesystem::path{"data"}};
 
+constexpr auto moikrug_url =
+        "https://career.habr.com/api/frontend/vacancies?q=&page=";
+
 static std::filesystem::path moikrug_filename{"moikrug.tsv"};
-
-constexpr auto hh_url = "https://hh.ru/search/"
-                        "vacancy"
-                        //"?L_is_autosearch=false"
-                        "?order_by=publication_time"
-                        "&clusters=true"
-                        "&area="
-                        "1&specialization=1.221"
-                        //"&enable_snippets=true"
-                        "&enable_snippets=true"
-                        "&items_on_page=25"
-                        //"&no_magic=true"
-                        "&page=";
-
-static std::filesystem::path hh_filename{"hh.tsv"};
 
 constexpr auto profunctor_url = "https://t.me/s/profunctor_jobs?before=";
 
 static std::filesystem::path profunctor_filename{"profunctor.tsv"};
+
+static std::filesystem::path hh_filename{"hh.tsv"};
+
+constexpr auto hh_url = "https://api.hh.ru/vacancies"
+                        "?specialization=1.221&specialization=1.25"
+                        "&per_page=100";
+
+constexpr auto hh_query_from = "&date_from=";
+constexpr auto hh_query_to = "&date_to=";
+constexpr auto hh_query_page = "&page=";
+
+constexpr auto hh_date_format = "%FT%T";
+
+constexpr auto moscow_timezone = "Europe/Moscow";
 
 void spawn_moikrug() {
         ETL::extractor::moikrug extractor{50};
@@ -69,40 +73,6 @@ void spawn_moikrug() {
         auto loaded = loader.load(transformer.transform(extractor.extract()));
         if (!loaded.size()) {
                 std::cerr << "failed to load moikrug" << std::endl;
-                exit(1);
-        }
-}
-
-void spawn_hh() {
-        ETL::extractor::hh extractor{100};
-        ETL::transformer::hh transformer{};
-        ETL::loader::hh loader{data_dir, hh_filename};
-
-        auto url = hh_url + std::to_string(0);
-        extractor.add_url(url);
-
-        auto pages = std::stoll(
-                transformer.transform(extractor.extract()).back().get());
-
-        extractor.reset_urls();
-
-        for (size_t i = 0; i < pages; ++i) {
-                auto url = hh_url + std::to_string(i);
-                extractor.add_url(url);
-        }
-
-        auto urls = transformer.transform(extractor.extract());
-
-        extractor.reset_urls();
-
-        for (auto &future : urls) {
-                auto url = future.get();
-                extractor.add_url(url);
-        }
-
-        auto loaded = loader.load(transformer.transform(extractor.extract()));
-        if (!loaded.size()) {
-                std::cerr << "failed to load hh" << std::endl;
                 exit(1);
         }
 }
@@ -148,8 +118,89 @@ void spawn_telegram() {
                 std::cout << future.get();
 }
 
+void spawn_hh() {
+        auto now_time = system_clock::now();
+
+        auto span_time = hours(24);
+
+        auto step_time = hours(1);
+
+        auto cursor_time = now_time - span_time;
+
+        auto timezone = locate_zone(moscow_timezone);
+
+        constexpr auto user_agent = "jobs.moki.codes";
+
+        ETL::extractor::hh extractor{user_agent, 15};
+        ETL::transformer::hh transformer{};
+        ETL::loader::hh loader{data_dir, hh_filename};
+
+        std::vector<std::string> hourly_urls;
+
+        for (; cursor_time < now_time;) {
+                auto zoned_from =
+                        make_zoned(timezone, floor<minutes>(cursor_time));
+
+                auto next_time = cursor_time + step_time;
+
+                auto zoned_to = make_zoned(timezone, floor<minutes>(next_time));
+
+                auto from_time =
+                        std::string{format(hh_date_format, zoned_from)};
+
+                auto to_time = std::string{format(hh_date_format, zoned_to)};
+
+                auto url = hh_url + std::string{hh_query_from} + from_time +
+                           std::string{hh_query_to} + to_time;
+
+                hourly_urls.push_back(std::string{url});
+
+                extractor.add_url(url);
+
+                cursor_time = next_time;
+        }
+
+        auto transformed = transformer.transform(extractor.extract());
+
+        size_t i = 0;
+
+        extractor.reset_urls();
+
+        for (auto &future : transformed) {
+                auto pages = std::stoll(future.get());
+
+                auto url = std::move(hourly_urls[i]);
+
+                for (size_t j = 0; j < pages; j++) {
+                        auto link = url + hh_query_page + std::to_string(j);
+
+                        extractor.add_url(link);
+                }
+
+                i++;
+        }
+
+        auto urls = transformer.transform(extractor.extract());
+
+        std::set<std::string> unique_urls{};
+
+        for (auto &future : urls)
+                unique_urls.insert(std::move(future.get()));
+
+        extractor.reset_urls();
+
+        for (auto url : unique_urls)
+                extractor.add_url(url);
+
+        auto jobs = loader.load(transformer.transform(extractor.extract()));
+        if (!jobs.size()) {
+                std::cerr << "faled to load profunctor" << std::endl;
+                exit(1);
+        }
+}
+
 int main() {
         spawn_moikrug();
-        // spawn_hh();
         spawn_telegram();
+        spawn_hh();
 }
