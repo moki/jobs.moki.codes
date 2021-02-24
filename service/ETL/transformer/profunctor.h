@@ -2,6 +2,9 @@
 
 #include <set>
 
+#include "../../common/utility/split.h"
+#include "../../common/utility/trim.h"
+
 namespace ETL {
 namespace transformer {
 
@@ -60,16 +63,10 @@ class profunctor : public html {
         std::string parse_job_meta(auto node);
         std::string parse_job_body(auto node);
 
-        size_t jobs_parsed;
-
         std::set<std::string> ids;
 };
 
-profunctor::profunctor()
-        : parse_mode{profunctor::mode::meta} // debug
-          ,
-          jobs_parsed{0} // debug
-          {};
+profunctor::profunctor() : parse_mode{profunctor::mode::meta} {};
 
 std::string profunctor::parse_it() {
         std::string meta{};
@@ -85,18 +82,15 @@ std::string profunctor::parse_it() {
 
         for (auto node : nodes) {
                 if (node->type != GUMBO_NODE_ELEMENT)
-                        // return std::move(meta);
                         continue;
 
                 auto attributes = node->v.element.attributes;
                 if (!attributes.length)
-                        // return std::move(meta);
                         continue;
 
                 auto data_attr = gumbo_get_attribute(
                         &attributes, more_messages_attribute.c_str());
                 if (!data_attr)
-                        // return std::move(meta);
                         continue;
 
                 meta = std::string{data_attr->value};
@@ -280,10 +274,22 @@ std::string profunctor::parse_job_body(auto node) {
 
                 index = text.find(del_skills);
                 if (index != std::string::npos) {
-                        job_skills =
-                                "["s +
-                                text.substr(index + del_skills.length() + 1) +
-                                "]"s;
+                        auto skills_str =
+                                text.substr(index + del_skills.length() + 1);
+
+                        auto skills = split(skills_str, ',');
+
+                        if (skills.size())
+                                job_skills = "["s;
+
+                        for (auto &skill : skills) {
+                                trim(skill);
+
+                                job_skills += "'" + skill + "',";
+                        }
+
+                        if (skills.size())
+                                job_skills[job_skills.length() - 1] = ']';
 
                         continue;
                 }
@@ -328,11 +334,21 @@ std::string profunctor::parse_job_body(auto node) {
 
                 index = text.find(del_location);
                 if (index != std::string::npos) {
-                        auto locations =
+                        auto locations_str =
                                 text.substr(index + del_location.length() + 1);
 
-                        if (locations.length())
-                                job_location = "["s + locations + "]"s;
+                        auto locations = split(locations_str, ',');
+
+                        if (locations.size())
+                                job_location = "["s;
+
+                        for (auto &location : locations) {
+                                trim(location);
+                                job_location += "'" + location + "',";
+                        }
+
+                        if (locations.size())
+                                job_location[job_location.length() - 1] = ']';
 
                         ctx_salary = false;
 
@@ -343,9 +359,24 @@ std::string profunctor::parse_job_body(auto node) {
                         auto remote = text.find("Remote") != std::string::npos;
 
                         job_remote = std::to_string(remote);
+                        if (remote)
+                                break;
 
-                        if (!remote)
-                                job_location = "["s + text + "]"s;
+                        if (!text.length())
+                                break;
+
+                        auto locations = split(text, ',');
+
+                        if (locations.size())
+                                job_location = "["s;
+
+                        for (auto &location : locations) {
+                                trim(location);
+                                job_location += "'" + location + "',";
+                        }
+
+                        if (locations.size())
+                                job_location[job_location.length() - 1] = ']';
 
                         break;
                 }
@@ -355,9 +386,9 @@ std::string profunctor::parse_job_body(auto node) {
                 return std::move(body);
 
         body += job_title + "\t"s;
-        body += (job_skills.length() ? job_skills : "\\N"s) + "\t"s;
-        body += (job_salary.length() ? job_salary : "\\N\t\\N"s) + "\t"s;
-        body += (job_location.length() ? job_location : "\\N"s) + "\t"s;
+        body += (job_skills.length() ? job_skills : "[]"s) + "\t"s;
+        body += (job_salary.length() ? job_salary : "\\N\t[]"s) + "\t"s;
+        body += (job_location.length() ? job_location : "[]"s) + "\t"s;
         body += job_remote;
 
         return std::move(body);
@@ -409,8 +440,6 @@ std::string profunctor::parse_jobs() {
                 return std::move(jobs);
         if (!it->second.size())
                 return std::move(jobs);
-
-        jobs_parsed += it->second.size();
 
         auto nodes = it->second;
 

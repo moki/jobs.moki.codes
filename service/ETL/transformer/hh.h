@@ -142,23 +142,21 @@ hh::transform(std::vector<std::future<std::string>> input) {
                                         skills.push_back(skill);
                         }
 
-                        skills_joined += "["sv;
+                        skills_joined += "["s;
 
                         for (auto it = skills.begin(); it != skills.end();
                              it++) {
-                                skills_joined += *it;
+                                skills_joined += "'"s + std::string{*it} + "'"s;
 
                                 if (it + 1 < skills.end())
-                                        skills_joined += ","sv;
+                                        skills_joined += ","s;
                         }
 
-                        skills_joined += "]"sv;
+                        skills_joined += "]"s;
 
-                        row += (skills.size() ? std::string{skills_joined}
-                                              : "\\N") +
-                               "\t";
+                        row += (skills.size() ? skills_joined : "[]") + "\t";
 
-                        std::string currency_salary{"\\N\t\\N"};
+                        std::string currency_salary{"\\N\t[]"};
 
                         err = job["salary"].get(salary);
                         if (!err) {
@@ -200,7 +198,7 @@ hh::transform(std::vector<std::future<std::string>> input) {
 
                         row += currency_salary + "\t";
 
-                        std::string location{"\\N"};
+                        std::string location{"[]"};
 
                         err = job["area"].get(area);
                         if (!err) {
@@ -208,8 +206,9 @@ hh::transform(std::vector<std::future<std::string>> input) {
 
                                 err = area["name"].get(city);
                                 if (!err)
-                                        location =
-                                                "["s + std::string{city} + "]"s;
+                                        location = "["s + "'" +
+                                                   std::string{city} + "'" +
+                                                   "]"s;
                         }
 
                         row += location + "\t";

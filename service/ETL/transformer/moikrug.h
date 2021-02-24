@@ -6,6 +6,8 @@
 
 #include "../lib/simdjson/main.h"
 
+#include "../../common/utility/trim.h"
+
 using namespace std::string_literals;
 
 namespace ETL {
@@ -58,11 +60,11 @@ std::string moikrug::parse_skills(auto &skills) {
                 std::string_view skill_str;
 
                 err = skill["title"].get(skill_str);
-                skills_vec.push_back(std::string{skill_str});
+                skills_vec.push_back("'" + std::string{skill_str} + "'");
         }
 
         if (!skills_vec.size())
-                return nullstr;
+                return "[]"s;
 
         auto skills_res =
                 std::accumulate(skills_vec.begin() + 1, skills_vec.end(),
@@ -85,7 +87,7 @@ std::string moikrug::parse_salary(auto &salary) {
 
         auto err = salary["currency"].get(currency);
         if (err)
-                return nullstr + "\t"s + nullstr;
+                return nullstr + "\t"s + "[]"s;
 
         err = salary["from"].get(from);
         if (!err)
@@ -111,7 +113,7 @@ std::string moikrug::parse_salary(auto &salary) {
                 break;
         }
         default: {
-                range = nullstr;
+                range = "[]"s;
                 break;
         }
         }
@@ -120,7 +122,7 @@ std::string moikrug::parse_salary(auto &salary) {
 }
 
 std::string moikrug::parse_locations(auto &locations) {
-        std::vector<std::string_view> titles;
+        std::vector<std::string> titles;
 
         for (simdjson::dom::element location_element : locations) {
                 simdjson::dom::object location;
@@ -131,17 +133,16 @@ std::string moikrug::parse_locations(auto &locations) {
                         break;
 
                 err = location["title"].get(title);
-                titles.push_back(title);
+                titles.push_back("'" + std::string{title} + "'");
         }
 
         if (!titles.size())
-                return nullstr;
+                return "[]"s;
 
         return std::accumulate(titles.begin() + 1, titles.end(),
-                               std::move("["s + std::string{*(titles.begin())}),
-                               [](std::string_view a, std::string_view b) {
-                                       return std::move(std::string{a} + "," +
-                                                        std::string{b});
+                               std::move("["s + *(titles.begin())),
+                               [](std::string a, std::string b) {
+                                       return std::move(a + "," + b);
                                }) +
                "]"s;
 }
@@ -164,17 +165,19 @@ std::string moikrug::parse_job(auto &job) {
         parsed += (err ? nullstr : std::string{parse_date(date)}) + "\t"s;
 
         err = job["title"].get(title);
-        parsed += (err ? nullstr : std::string{title}) + "\t"s;
+        std::string title_str{title};
+        trim(title_str);
+        parsed += (err ? nullstr : title_str) + "\t"s;
 
         err = job["skills"].get(skills);
-        parsed += (err ? nullstr : parse_skills(skills)) + "\t"s;
+        parsed += (err ? "[]"s : parse_skills(skills)) + "\t"s;
 
         err = job["salary"].get(salary);
-        parsed += (err ? (nullstr + "\t"s + "[0,0]"s) : parse_salary(salary)) +
+        parsed += (err ? (nullstr + "\t"s + "[]"s) : parse_salary(salary)) +
                   "\t"s;
 
         err = job["locations"].get(locations);
-        parsed += (err ? nullstr : parse_locations(locations)) + "\t"s;
+        parsed += (err ? "[]"s : parse_locations(locations)) + "\t"s;
 
         err = job["remoteWork"].get(remote);
         parsed += (err ? nullstr : std::to_string(remote));
