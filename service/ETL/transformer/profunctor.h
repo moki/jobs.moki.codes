@@ -2,8 +2,8 @@
 
 #include <set>
 
-#include "../../common/utility/split.h"
-#include "../../common/utility/trim.h"
+#include "../utility/split.h"
+#include "../utility/trim.h"
 
 namespace ETL {
 namespace transformer {

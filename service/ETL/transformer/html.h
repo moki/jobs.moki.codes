@@ -2,8 +2,8 @@
 
 #include "transformer.h"
 
-#include "../../common/debug/type_name.h"
-#include "../../common/utility/split.h"
+#include "../debug/type_name.h"
+#include "../utility/split.h"
 
 #include "gumbo.h"
 

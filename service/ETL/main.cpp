@@ -10,7 +10,7 @@
 #include "loader/hh.h"
 #include "transformer/hh.h"
 
-#include "../common/utility/split.h"
+#include "utility/split.h"
 
 #include <chrono>
 #include <filesystem>
@@ -114,8 +114,10 @@ void spawn_telegram() {
                 exit(1);
         }
 
+        /*
         for (auto &future : loaded)
                 std::cout << future.get();
+        */
 }
 
 void spawn_hh() {
@@ -131,7 +133,7 @@ void spawn_hh() {
 
         constexpr auto user_agent = "jobs.moki.codes";
 
-        ETL::extractor::hh extractor{user_agent, 15};
+        ETL::extractor::hh extractor{user_agent, 25};
         ETL::transformer::hh transformer{};
         ETL::loader::hh loader{data_dir, hh_filename};
 
@@ -200,7 +202,22 @@ void spawn_hh() {
 }
 
 int main() {
-        spawn_moikrug();
-        spawn_telegram();
-        spawn_hh();
+        try {
+                spawn_moikrug();
+        } catch (const std::exception &e) {
+                std::cout << "retry: moikrug" << std::endl;
+                spawn_moikrug();
+        }
+        try {
+                spawn_telegram();
+        } catch (const std::exception &e) {
+                std::cout << "retry: telegram" << std::endl;
+                spawn_telegram();
+        }
+        try {
+                spawn_hh();
+        } catch (const std::exception &e) {
+                std::cout << "retry: hh" << std::endl;
+                spawn_hh();
+        }
 }

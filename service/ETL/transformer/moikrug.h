@@ -6,7 +6,7 @@
 
 #include "../lib/simdjson/main.h"
 
-#include "../../common/utility/trim.h"
+#include "../utility/trim.h"
 
 using namespace std::string_literals;
 
