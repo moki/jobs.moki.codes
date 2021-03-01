@@ -23,11 +23,31 @@ SET (CMAKE_NM      "/usr/bin/llvm-nm")
 SET (CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
 SET (CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
 
-include_directories(lib)
+include_directories(lib/date)
+include_directories(lib/simdjson)
+
+file(GLOB_RECURSE lib_date_sources "lib/date/*.cpp")
+file(GLOB_RECURSE lib_simdjson_sources "lib/simdjson/*.cpp")
 
 find_library(GUMBO gumbo)
 
-file(GLOB SOURCES "*.cpp" "*.h" "**/*.cpp" "**/*.h")
+include_directories(debug)
+include_directories(utility)
+include_directories(transformer)
+include_directories(extractor)
+include_directories(loader)
+include_directories(repository)
+
+file(GLOB_RECURSE utility_sources "utility/**/*.cpp")
+file(GLOB_RECURSE debug_sources "debug/**/*.cpp")
+file(GLOB_RECURSE repository_sources "repository/**/*.cpp")
+file(GLOB_RECURSE extractor_sources "extractor/**/*.cpp")
+file(GLOB_RECURSE transformer_sources "transformer/**/*.cpp")
+file(GLOB_RECURSE loader_sources "loader/**/*.cpp")
+
+list(APPEND SOURCES "main.cpp")
+list(APPEND SOURCES ${repository_sources} ${extractor_sources} ${transformer_sources} ${loader_sources} ${debug_sources} ${utility_sources} ${lib_date_sources} ${lib_simdjson_sources})
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++abi -lgumbo -lcurl -lclickhouse-cpp-lib")
 
