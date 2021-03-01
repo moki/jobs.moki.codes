@@ -4,9 +4,22 @@
 
 * Clang
 * CMake
+* [Clickhouse](https://github.com/ClickHouse/ClickHouse)
+
+### Shared
+
 * OpenSSL
-* Poco
-* simdjson(comes with the sources, lib/simdjson)
+* [Poco](https://github.com/pocoproject/poco)
+* [clickhouse-cpp](https://github.com/ClickHouse/clickhouse-cpp)
+
+### static
+
+comes with sources
+
+* [simdjson](https://github.com/simdjson/simdjson)
+  * [lib/simdjson](lib/simdjson)
+* [date](https://github.com/HowardHinnant/date)
+  * [lib/date](lib/date)
 
 ETL is a data pipeline.
 Each component consists of extractor, transformer and loader.

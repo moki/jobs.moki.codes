@@ -29,7 +29,7 @@ find_library(GUMBO gumbo)
 
 file(GLOB SOURCES "*.cpp" "*.h" "**/*.cpp" "**/*.h")
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++abi -lgumbo -lcurl")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++abi -lgumbo -lcurl -lclickhouse-cpp-lib")
 
 find_package(Threads REQUIRED)
 find_package(Poco REQUIRED COMPONENTS Util Foundation Crypto Net NetSSL)
@@ -38,4 +38,4 @@ find_package(OpenSSL REQUIRED)
 add_executable(daemon ${SOURCES})
 
 target_link_libraries(daemon PRIVATE Threads::Threads)
-target_link_libraries(daemon PUBLIC Poco::Util Poco::Foundation Poco::Net Poco::Crypto Poco::NetSSL)
+target_link_libraries(daemon PUBLIC Poco::Util Poco::Foundation Poco::Net Poco::Crypto Poco::NetSSL clickhouse-cpp-lib)
