@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "../lib/simdjson/main.h"
+#include "../lib/simdjson/simdjson_main.h"
 
 namespace ETL {
 namespace transformer {
@@ -119,19 +119,31 @@ hh::transform(std::vector<std::future<std::string>> input) {
                         if (err || !id.length())
                                 continue;
 
+                        std::cout << id << std::endl;
+
                         err = job["published_at"].get(date);
                         if (err || !date.length())
                                 continue;
 
+                        std::cout << date << std::endl;
+
                         date = date.substr(0, date.find("T"));
+
+                        std::cout << date << std::endl;
 
                         row += std::string{id} + "\t" + std::string{date} +
                                "\t";
 
+                        std::cout << row << std::endl;
+
                         err = job["name"].get(name);
+
+                        std::cout << name << std::endl;
 
                         row += (name.length() ? std::string{name} : "\\N"s) +
                                "\t";
+
+                        std::cout << row << std::endl;
 
                         err = job["key_skills"].get(dom_skills);
                         for (auto skill_element : dom_skills) {
@@ -154,7 +166,11 @@ hh::transform(std::vector<std::future<std::string>> input) {
 
                         skills_joined += "]"s;
 
+                        std::cout << skills_joined << std::endl;
+
                         row += (skills.size() ? skills_joined : "[]") + "\t";
+
+                        std::cout << row << std::endl;
 
                         std::string currency_salary{"\\N\t[]"};
 
@@ -198,6 +214,8 @@ hh::transform(std::vector<std::future<std::string>> input) {
 
                         row += currency_salary + "\t";
 
+                        std::cout << row << std::endl;
+
                         std::string location{"[]"};
 
                         err = job["area"].get(area);
@@ -213,6 +231,8 @@ hh::transform(std::vector<std::future<std::string>> input) {
 
                         row += location + "\t";
 
+                        std::cout << row << std::endl;
+
                         std::string remote{"0"};
 
                         err = job["schedule"].get(schedule);
@@ -226,6 +246,8 @@ hh::transform(std::vector<std::future<std::string>> input) {
                         }
 
                         row += remote + "\n";
+
+                        std::cout << row << std::endl;
 
                         parsed.push_back(row);
                 }

@@ -11,6 +11,7 @@
 #include "Poco/Net/HTTPSClientSession.h"
 
 #include "Poco/Poco.h"
+#include "Poco/Timespan.h"
 #include "Poco/URI.h"
 
 namespace ETL {
@@ -18,27 +19,59 @@ namespace extractor {
 
 using namespace std::string_literals;
 
+static inline auto is_valid_response(std::string &res) {
+        return res.find("errors") == std::string::npos;
+}
+
 class https : public virtual base {
-        inline static auto make_req(std::string url, std::string user_agent) {
-                std::string response{};
-                auto uri = Poco::URI{url};
+        inline static std::string
+        make_req(std::string url, std::string user_agent,
+                 std::chrono::milliseconds req_delay) {
+                std::string response{"errors"};
 
-                Poco::Net::HTTPSClientSession session(uri.getHost(),
-                                                      uri.getPort());
-                Poco::Net::HTTPRequest req(Poco::Net::HTTPRequest::HTTP_GET,
-                                           uri.getPathAndQuery(),
-                                           Poco::Net::HTTPMessage::HTTP_1_1);
+                auto status = 0;
 
-                if (user_agent.length())
-                        req.set("User-Agent", user_agent);
+                for (; status != 200 || !is_valid_response(response);) {
+                        response = "";
 
-                std::ostream &ostr = session.sendRequest(req);
-                Poco::Net::HTTPResponse res;
+                        if (status)
+                                std::cout << "retry" << std::endl;
 
-                std::istream &rs = session.receiveResponse(res);
-                Poco::StreamCopier::copyToString(rs, response);
+                        std::this_thread::sleep_for(req_delay);
 
-                return std::move(response);
+                        auto uri = Poco::URI{url};
+
+                        Poco::Net::HTTPSClientSession session(uri.getHost(),
+                                                              uri.getPort());
+                        Poco::Net::HTTPRequest req(
+                                Poco::Net::HTTPRequest::HTTP_GET,
+                                uri.getPathAndQuery(),
+                                Poco::Net::HTTPMessage::HTTP_1_1);
+
+                        req.setKeepAlive(true);
+
+                        auto timeout = Poco::Timespan(10, 0);
+                        session.setTimeout(timeout);
+
+                        if (user_agent.length())
+                                req.set("User-Agent", user_agent);
+
+                        std::ostream &ostr = session.sendRequest(req);
+                        Poco::Net::HTTPResponse res;
+
+                        status = res.getStatus();
+
+                        std::cout << status << std::endl;
+
+                        std::istream &rs = session.receiveResponse(res);
+                        // Poco::StreamCopier::copyToString(rs, response);
+                        response = std::string(
+                                std::istreambuf_iterator<char>(rs), {});
+
+                        std::cout << response << std::endl;
+                }
+
+                return response;
         };
 
     public:
@@ -48,7 +81,7 @@ class https : public virtual base {
         https();
 
         std::vector<std::future<std::string>> extract() override;
-        void add_url(std::string &url);
+        void add_url(std::string url);
         void reset_urls();
         void set_req_delay(size_t ms);
 
@@ -71,7 +104,7 @@ https::https(size_t delay)
 
 https::https() : req_delay{std::chrono::milliseconds(100)}, user_agent{} {};
 
-void https::add_url(std::string &url) { urls.push_back(std::move(url)); }
+void https::add_url(std::string url) { urls.push_back(std::move(url)); }
 
 void https::reset_urls() { urls.clear(); }
 
@@ -90,14 +123,14 @@ std::vector<std::future<std::string>> https::extract() {
         std::vector<std::future<std::string>> responses{};
         responses.reserve(urls.size());
 
-        for (auto &url : urls) {
-                std::this_thread::sleep_for(req_delay);
+        for (auto url : urls) {
+                // std::this_thread::sleep_for(req_delay);
 
                 responses.push_back(std::async(std::launch::async, make_req,
-                                               url, user_agent));
+                                               url, user_agent, req_delay));
         }
 
-        return std::move(responses);
+        return responses;
 }
 
 } // namespace extractor

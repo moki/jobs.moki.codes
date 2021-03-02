@@ -20,7 +20,9 @@
 #include <streambuf>
 #include <string>
 
-#include "lib/date/main.h"
+#include "lib/date/date_main.h"
+
+#include "loader/clickhouse.h"
 
 using namespace std::string_literals;
 using namespace std::chrono;
@@ -52,6 +54,12 @@ constexpr auto hh_date_format = "%FT%T";
 
 constexpr auto moscow_timezone = "Europe/Moscow";
 
+static std::filesystem::path schema_dir{std::filesystem::current_path() /
+                                        std::filesystem::path{"repository"} /
+                                        std::filesystem::path{"clickhouse"}};
+
+static std::filesystem::path schema_filename{"schema.sql"};
+
 void spawn_moikrug() {
         ETL::extractor::moikrug extractor{50};
         ETL::transformer::moikrug transformer{};
@@ -65,6 +73,8 @@ void spawn_moikrug() {
 
         extractor.reset_urls();
 
+        pages = 5;
+
         for (size_t i = 1; i <= pages; ++i) {
                 auto url = moikrug_url + std::to_string(i);
                 extractor.add_url(url);
@@ -75,6 +85,20 @@ void spawn_moikrug() {
                 std::cerr << "failed to load moikrug" << std::endl;
                 exit(1);
         }
+
+        std::ifstream schema_file(schema_dir / schema_filename);
+        if (!schema_file) {
+                std::cerr << "provide clickhouse schema" << std::endl;
+
+                exit(1);
+        }
+
+        std::string schema{std::istreambuf_iterator<char>{schema_file}, {}};
+        std::string repo_host{"localhost"};
+
+        ETL::loader::clickhouse clickhouse_loader{repo_host, schema};
+
+        clickhouse_loader.load(std::move(loaded));
 }
 
 void spawn_telegram() {
@@ -100,7 +124,8 @@ void spawn_telegram() {
 
         extractor.add_url(first_page);
 
-        auto stop = 0;
+        // auto stop = 0;
+        auto stop = 800;
 
         for (; it > stop; it -= step) {
                 auto url = profunctor_url + std::to_string(it);
@@ -114,16 +139,25 @@ void spawn_telegram() {
                 exit(1);
         }
 
-        /*
-        for (auto &future : loaded)
-                std::cout << future.get();
-        */
+        std::ifstream schema_file(schema_dir / schema_filename);
+        if (!schema_file) {
+                std::cerr << "provide clickhouse schema" << std::endl;
+
+                exit(1);
+        }
+
+        std::string schema{std::istreambuf_iterator<char>{schema_file}, {}};
+        std::string repo_host{"localhost"};
+
+        ETL::loader::clickhouse clickhouse_loader{repo_host, schema};
+
+        clickhouse_loader.load(std::move(loaded));
 }
 
 void spawn_hh() {
         auto now_time = system_clock::now();
 
-        auto span_time = hours(24);
+        auto span_time = hours(2);
 
         auto step_time = hours(1);
 
@@ -131,9 +165,12 @@ void spawn_hh() {
 
         auto timezone = locate_zone(moscow_timezone);
 
-        constexpr auto user_agent = "jobs.moki.codes";
+        // constexpr auto user_agent = "jobs.moki.codes";
+        constexpr auto user_agent =
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, "
+                "like Gecko) Chrome/88.0.4324.182 Safari/537.36";
 
-        ETL::extractor::hh extractor{user_agent, 25};
+        ETL::extractor::hh extractor{user_agent, 50};
         ETL::transformer::hh transformer{};
         ETL::loader::hh loader{data_dir, hh_filename};
 
@@ -199,9 +236,24 @@ void spawn_hh() {
                 std::cerr << "faled to load profunctor" << std::endl;
                 exit(1);
         }
+
+        std::ifstream schema_file(schema_dir / schema_filename);
+        if (!schema_file) {
+                std::cerr << "provide clickhouse schema" << std::endl;
+
+                exit(1);
+        }
+
+        std::string schema{std::istreambuf_iterator<char>{schema_file}, {}};
+        std::string repo_host{"localhost"};
+
+        ETL::loader::clickhouse clickhouse_loader{repo_host, schema};
+
+        clickhouse_loader.load(std::move(jobs));
 }
 
 int main() {
+        /*
         try {
                 spawn_moikrug();
         } catch (const std::exception &e) {
@@ -214,6 +266,7 @@ int main() {
                 std::cout << "retry: telegram" << std::endl;
                 spawn_telegram();
         }
+        */
         try {
                 spawn_hh();
         } catch (const std::exception &e) {

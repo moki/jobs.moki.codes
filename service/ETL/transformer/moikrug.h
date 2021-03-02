@@ -4,7 +4,7 @@
 #include <numeric>
 #include <string>
 
-#include "../lib/simdjson/main.h"
+#include "../lib/simdjson/simdjson_main.h"
 
 #include "../utility/trim.h"
 
