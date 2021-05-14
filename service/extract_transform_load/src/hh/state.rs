@@ -1,44 +1,48 @@
+use std::error::Error;
+use std::fs::File;
+use std::path::PathBuf;
+
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
-use std::error;
-use std::fs::File;
-use std::path::Path;
 
 // State - hh pipeline state
 //
 // start_from   - the date in UTC, tells service to continue extraction
 //              - of the data from that point in time.
-#[derive(Debug, Serialize, Deserialize)]
+// path         - fs path where state gets persisted to and restored from.
+#[derive(Serialize, Deserialize, Debug)]
 pub struct State {
     pub(crate) start_from: DateTime<Utc>,
+    path: PathBuf,
 }
 
 impl State {
-    pub fn new() -> Self {
-        State {
+    // new - creates new or restores previously held state from fs
+    pub fn new(path: PathBuf) -> Self {
+        let state = State {
             start_from: Utc::now(),
+            path: path,
+        };
+
+        match state.restore() {
+            Ok(state) => state,
+            _ => state,
         }
     }
 
-    // restore - restores state from filesystem
-    pub fn restore<P>(path: P) -> Result<Self, Box<dyn error::Error>>
-    where
-        P: AsRef<Path>,
-    {
-        let file = File::open(path)?;
+    // restore - restores state from the filesystem
+    pub fn restore(&self) -> Result<Self, Box<dyn Error>> {
+        let file = File::open(&self.path)?;
 
         let state: State = serde_yaml::from_reader(&file)?;
 
         Ok(state)
     }
 
-    // persist - persists state to filesystem
-    pub fn persist<P>(&self, path: P) -> Result<(), Box<dyn error::Error>>
-    where
-        P: AsRef<Path>,
-    {
-        let file = File::create(path)?;
+    // persist - persists state to the filesystem
+    pub fn persist(&self) -> Result<(), Box<dyn Error>> {
+        let file = File::create(&self.path)?;
 
         serde_yaml::to_writer(file, self)?;
 

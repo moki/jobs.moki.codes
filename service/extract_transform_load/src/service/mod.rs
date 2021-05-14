@@ -4,6 +4,8 @@ use std::fmt::Debug;
 use std::fs;
 use std::path::Path;
 
+const HH_CONFIG: &str = "hh.yml";
+
 pub(crate) mod config;
 
 #[derive(Debug)]
@@ -21,15 +23,17 @@ impl Service {
         fs::create_dir_all(&self.config.data)?;
         fs::create_dir_all(&self.config.state)?;
 
-        let hh_config = Path::new(&self.config.config).join("hh.yml");
-        let hh_config = hh::Config::from_file(hh_config)?;
+        let hh_config_filename = Path::new(&self.config.config).join(HH_CONFIG);
+        let hh_config = hh::Config::from_file(hh_config_filename)?;
 
-        let mut hh = hh::Service::new(hh_config, &self.config);
+        let mut hh = hh::Service::new(hh_config, &self.config)?;
 
+        /*
         println!("wrapper service");
         println!("{:?}", self);
         println!("hh service");
         println!("{:?}", hh);
+        */
 
         hh.run().await?;
 
