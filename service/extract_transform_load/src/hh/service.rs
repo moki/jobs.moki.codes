@@ -21,7 +21,6 @@ pub struct Service {
 impl Service {
     pub fn new(config: Config, common: &service::Config) -> Result<Self, Box<dyn Error>> {
         let state_path = PathBuf::from(&common.state).join(STATE_FILENAME);
-        data_path = PathBuf::from(&common.data).join(&config.filename);
 
         let extractor_config = extractor::Config {
             url: config.url,
@@ -44,11 +43,11 @@ impl Service {
 
         for day in (0..self.days).rev() {
             let day_cursor = time_from + Duration::days(day);
-            let hours = 6;
+            let hours = 24;
 
-            for hour in 0..hours {
-                let left = day_cursor + chrono::Duration::hours(hour);
-                let left = Moscow.from_utc_datetime(&left.naive_utc());
+            for hour in (0..hours).rev() {
+                let left_d = day_cursor + chrono::Duration::hours(hour);
+                let left = Moscow.from_utc_datetime(&left_d.naive_utc());
                 let left = left.format("%Y-%m-%dT%H:%M:%S").to_string();
 
                 let right = day_cursor + chrono::Duration::hours(hour + 1);
@@ -56,9 +55,15 @@ impl Service {
                 let right = right.format("%Y-%m-%dT%H:%M:%S").to_string();
 
                 let jobs = self.extractor.extract_in_timeframe(&left, &right);
+
+                let jobs = jobs.await;
+
+                self.state.start_from = left_d;
+
+                self.state.persist()?;
             }
 
-            self.state.start_from = day_cursor - chrono::Duration::days(1);
+            self.state.start_from = day_cursor;
 
             self.state.persist()?;
         }

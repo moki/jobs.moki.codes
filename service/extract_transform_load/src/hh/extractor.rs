@@ -1,8 +1,11 @@
+use super::transformer::*;
+
+use std::error::Error;
+use std::time::Duration;
+
 use futures::future::join_all;
 use reqwest::{Client, ClientBuilder, Method, Response};
 use serde::Deserialize;
-use std::error::Error;
-use std::time::Duration;
 use tokio::time;
 
 const DELAY_LIMIT: Duration = Duration::from_micros(10_000_000);
@@ -37,53 +40,27 @@ struct UrlsResponse {
 }
 
 #[derive(Deserialize, Debug)]
-pub(crate) struct Salary {
-    from: u64,
-    to: u64,
-    currency: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub(crate) struct Area {
-    name: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub(crate) struct Schedule {
-    id: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub(crate) struct Specialization {
-    id: String,
-    name: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub(crate) struct Skill {
-    name: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub(crate) struct Experience {
-    id: String,
-}
-
-#[derive(Deserialize, Debug)]
 pub(crate) struct Job {
+    pub(crate) id: String,
     #[serde(rename(deserialize = "name"))]
     pub(crate) title: String,
-    pub(crate) id: String,
-    pub(crate) salary: Salary,
-    pub(crate) area: Area,
-    pub(crate) schedule: Schedule,
-    #[serde(rename(deserialize = "published_at"))]
+    #[serde(deserialize_with = "de_salary")]
+    pub(crate) salary: Option<Salary>,
+    #[serde(deserialize_with = "de_area")]
+    pub(crate) area: String,
+    #[serde(rename(deserialize = "schedule"), deserialize_with = "de_schedule")]
+    pub(crate) remote: bool,
+    #[serde(
+        rename(deserialize = "published_at"),
+        deserialize_with = "de_published_at"
+    )]
     pub(crate) created: String,
-    #[serde(rename(deserialize = "specializations"))]
-    pub(crate) fields: Vec<Specialization>,
-    #[serde(rename(deserialize = "key_skills"))]
-    pub(crate) skills: Vec<Skill>,
-    pub(crate) experience: Experience,
+    #[serde(deserialize_with = "de_specializations")]
+    pub(crate) specializations: Vec<Vec<String>>,
+    #[serde(deserialize_with = "de_skills", rename(deserialize = "key_skills"))]
+    pub(crate) skills: Vec<String>,
+    #[serde(deserialize_with = "de_experience")]
+    pub(crate) experience: u8,
 }
 
 impl Extractor {
@@ -104,6 +81,7 @@ impl Extractor {
             query_params: config.query_params,
             client: ClientBuilder::new()
                 .user_agent(&config.user_agent)
+                .timeout(Duration::from_micros(5_000_000))
                 .build()?,
             delay_limit: config.delay_limit.unwrap_or(DELAY_LIMIT),
         })
