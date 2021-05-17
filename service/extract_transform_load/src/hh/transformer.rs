@@ -2,9 +2,33 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
+pub(crate) struct Job {
+    pub(crate) id: String,
+    #[serde(rename(deserialize = "name"))]
+    pub(crate) title: String,
+    #[serde(deserialize_with = "de_salary")]
+    pub(crate) salary: Option<Salary>,
+    #[serde(deserialize_with = "de_area")]
+    pub(crate) area: String,
+    #[serde(rename(deserialize = "schedule"), deserialize_with = "de_schedule")]
+    pub(crate) remote: bool,
+    #[serde(
+        rename(deserialize = "published_at"),
+        deserialize_with = "de_published_at"
+    )]
+    pub(crate) created: DateTime<Utc>,
+    #[serde(deserialize_with = "de_specializations")]
+    pub(crate) specializations: Vec<Vec<String>>,
+    #[serde(deserialize_with = "de_skills", rename(deserialize = "key_skills"))]
+    pub(crate) skills: Vec<String>,
+    #[serde(deserialize_with = "de_experience")]
+    pub(crate) experience: u8,
+}
+
+#[derive(Deserialize, Debug)]
 pub(crate) struct Salary {
-    avg: u64,
-    currency: String,
+    pub(crate) avg: u64,
+    pub(crate) currency: String,
 }
 
 pub(crate) fn de_salary<'de, D>(deserializer: D) -> Result<Option<Salary>, D::Error>
@@ -64,7 +88,7 @@ where
     Ok(area.name)
 }
 
-pub(crate) fn de_published_at<'de, D>(deserializer: D) -> Result<String, D::Error>
+pub(crate) fn de_published_at<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
 where
     D: serde::de::Deserializer<'de>,
 {
@@ -74,7 +98,7 @@ where
         .parse::<DateTime<Utc>>()
         .map_err(serde::de::Error::custom)?;
 
-    Ok(date.format("%Y-%m-%dT%H:%M:%S").to_string())
+    Ok(date)
 }
 
 pub(crate) fn de_schedule<'de, D>(deserializer: D) -> Result<bool, D::Error>

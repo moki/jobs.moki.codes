@@ -39,30 +39,6 @@ struct UrlsResponse {
     items: Vec<UrlResponse>,
 }
 
-#[derive(Deserialize, Debug)]
-pub(crate) struct Job {
-    pub(crate) id: String,
-    #[serde(rename(deserialize = "name"))]
-    pub(crate) title: String,
-    #[serde(deserialize_with = "de_salary")]
-    pub(crate) salary: Option<Salary>,
-    #[serde(deserialize_with = "de_area")]
-    pub(crate) area: String,
-    #[serde(rename(deserialize = "schedule"), deserialize_with = "de_schedule")]
-    pub(crate) remote: bool,
-    #[serde(
-        rename(deserialize = "published_at"),
-        deserialize_with = "de_published_at"
-    )]
-    pub(crate) created: String,
-    #[serde(deserialize_with = "de_specializations")]
-    pub(crate) specializations: Vec<Vec<String>>,
-    #[serde(deserialize_with = "de_skills", rename(deserialize = "key_skills"))]
-    pub(crate) skills: Vec<String>,
-    #[serde(deserialize_with = "de_experience")]
-    pub(crate) experience: u8,
-}
-
 impl Extractor {
     pub(crate) fn new(config: Config) -> Result<Self, Box<dyn Error>> {
         let url = format!(
