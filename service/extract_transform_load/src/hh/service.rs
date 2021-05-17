@@ -1,4 +1,5 @@
 use super::extractor;
+use super::loader;
 use super::state::State;
 use super::Config;
 use crate::service;
@@ -14,6 +15,7 @@ const STATE_FILENAME: &str = "hh.yml";
 
 pub struct Service {
     extractor: extractor::Extractor,
+    loader: loader::ClickHouse,
     state: State,
     days: i64,
 }
@@ -31,14 +33,19 @@ impl Service {
 
         let extractor = extractor::Extractor::new(extractor_config)?;
 
+        let loader = loader::ClickHouse::new(config.db_uri)?;
+
         Ok(Service {
-            state: State::new(state_path),
             extractor: extractor,
+            loader: loader,
+            state: State::new(state_path),
             days: config.days as i64,
         })
     }
 
     pub async fn run(&mut self) -> Result<(), Box<dyn Error>> {
+        self.loader.initialize().await?;
+
         let time_from = self.state.start_from - Duration::days(self.days);
 
         for day in (0..self.days).rev() {
@@ -54,9 +61,9 @@ impl Service {
                 let right = Moscow.from_utc_datetime(&right.naive_utc());
                 let right = right.format("%Y-%m-%dT%H:%M:%S").to_string();
 
-                let jobs = self.extractor.extract_in_timeframe(&left, &right);
+                let jobs = self.extractor.extract_in_timeframe(&left, &right).await;
 
-                let jobs = jobs.await;
+                self.loader.store(&jobs).await?;
 
                 self.state.start_from = left_d;
 

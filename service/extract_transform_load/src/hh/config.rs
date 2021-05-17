@@ -20,6 +20,7 @@ pub struct Config {
     pub(crate) query_params: Vec<(String, String)>,
     pub(crate) days: u16,
     pub(crate) user_agent: String,
+    pub(crate) db_uri: String,
 }
 
 impl Config {
