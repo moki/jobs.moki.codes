@@ -24,16 +24,10 @@ impl Service {
         fs::create_dir_all(&self.config.state)?;
 
         let hh_config_filename = Path::new(&self.config.config).join(HH_CONFIG);
+
         let hh_config = hh::Config::from_file(hh_config_filename)?;
 
         let mut hh = hh::Service::new(hh_config, &self.config)?;
-
-        /*
-        println!("wrapper service");
-        println!("{:?}", self);
-        println!("hh service");
-        println!("{:?}", hh);
-        */
 
         hh.run().await?;
 
