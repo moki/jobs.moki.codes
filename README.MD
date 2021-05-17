@@ -1,6 +1,6 @@
 # jobs.moki.codes
 
-## folder structure
+## Structure
 
 ```
 service/<service_name>
@@ -10,7 +10,7 @@ service/<service_name>
 
 follow links for the detailed write-ups
 
-* [Extract Transform Load](service/ETL)
+* [Extract Transform Load](service/extract_transform_load)
 
 ## license
 
