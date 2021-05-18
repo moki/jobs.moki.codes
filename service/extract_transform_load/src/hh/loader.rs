@@ -11,8 +11,9 @@ const CREATE_DB_STMT: &str = "create database if not exists jobs_moki_codes";
 
 const USE_DB_STMT: &str = "use jobs_moki_codes";
 
-const DEDUPLICATE_STMT: &str = "optimize table jobs final DEDUPLICATE";
-const CREATE_TABLE_STMT: &str = "create table if not exists jobs (
+const DEDUPLICATE_STMT: &str = "optimize table jobs_moki_codes.jobs final DEDUPLICATE";
+
+const CREATE_TABLE_STMT: &str = "create table if not exists jobs_moki_codes.jobs (
         local_id                String,
         title                   String,
         area                    String,
@@ -106,7 +107,7 @@ impl ClickHouse {
 
         let mut client = self.pool.get_handle().await?;
 
-        client.insert("jobs", block).await?;
+        client.insert("jobs_moki_codes.jobs", block).await?;
 
         client.execute(DEDUPLICATE_STMT).await?;
 
