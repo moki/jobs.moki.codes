@@ -53,8 +53,24 @@ impl ClickHouse {
         Ok(())
     }
 
-    pub(crate) async fn store(&self, jobs: &Vec<Job>) -> Result<(), Box<dyn Error>> {
+    pub(crate) async fn store(&self, jobs: &mut Vec<Job>) -> Result<(), Box<dyn Error>> {
         let size = jobs.len();
+
+        // TODO: factor out to the "to columnar" transform function.
+        // inside the transformer module
+
+        let poss_title_skills = [
+            "junior",
+            "middle",
+            "senior",
+            "младший",
+            "старший",
+            "ведущий",
+            "lead",
+            "front",
+            "back",
+            "full",
+        ];
 
         let mut ids: Vec<String> = Vec::with_capacity(size);
         let mut titles: Vec<String> = Vec::with_capacity(size);
@@ -71,6 +87,19 @@ impl ClickHouse {
         for job in jobs {
             ids.push(job.id.to_owned());
             titles.push(job.title.to_owned());
+
+            for t in job.title.split(' ') {
+                let ts = t.to_string();
+
+                if poss_title_skills.contains(&t) && !job.skills.contains(&ts) {
+                    job.skills.push(ts);
+                }
+            }
+
+            job.skills.sort();
+
+            job.skills.dedup();
+
             areas.push(job.area.to_owned());
             salary_avg.push(job.salary.as_ref().map(|s| s.avg));
             salary_curr.push(job.salary.as_ref().map(|s| s.currency.to_owned()));

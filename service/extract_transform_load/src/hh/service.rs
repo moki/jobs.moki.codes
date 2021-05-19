@@ -61,9 +61,9 @@ impl Service {
                 let right = Moscow.from_utc_datetime(&right.naive_utc());
                 let right = right.format("%Y-%m-%dT%H:%M:%S").to_string();
 
-                let jobs = self.extractor.extract_in_timeframe(&left, &right).await;
+                let mut jobs = self.extractor.extract_in_timeframe(&left, &right).await;
 
-                self.loader.store(&jobs).await?;
+                self.loader.store(&mut jobs).await?;
 
                 self.state.start_from = left_d;
 

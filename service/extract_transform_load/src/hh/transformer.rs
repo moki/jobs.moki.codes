@@ -4,7 +4,7 @@ use serde::Deserialize;
 #[derive(Deserialize, Debug)]
 pub(crate) struct Job {
     pub(crate) id: String,
-    #[serde(rename(deserialize = "name"))]
+    #[serde(rename(deserialize = "name"), deserialize_with = "de_title")]
     pub(crate) title: String,
     #[serde(deserialize_with = "de_salary")]
     pub(crate) salary: Option<Salary>,
@@ -31,6 +31,13 @@ pub(crate) struct Salary {
     pub(crate) currency: String,
 }
 
+pub(crate) fn de_title<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    Ok(String::deserialize(deserializer)?.to_lowercase())
+}
+
 pub(crate) fn de_salary<'de, D>(deserializer: D) -> Result<Option<Salary>, D::Error>
 where
     D: serde::de::Deserializer<'de>,
@@ -44,9 +51,7 @@ where
 
     type OptionalSalary = Option<Inner>;
 
-    let salary = OptionalSalary::deserialize(deserializer)?;
-
-    if let Some(salary) = salary {
+    if let Some(salary) = OptionalSalary::deserialize(deserializer)? {
         if let Some(from) = salary.from {
             if let Some(to) = salary.to {
                 let avg = (from + to) / 2;
@@ -83,22 +88,16 @@ where
         name: String,
     }
 
-    let area = Area::deserialize(deserializer)?;
-
-    Ok(area.name)
+    Ok(Area::deserialize(deserializer)?.name.to_lowercase())
 }
 
 pub(crate) fn de_published_at<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
 where
     D: serde::de::Deserializer<'de>,
 {
-    let s = String::deserialize(deserializer)?;
-
-    let date = s
+    Ok(String::deserialize(deserializer)?
         .parse::<DateTime<Utc>>()
-        .map_err(serde::de::Error::custom)?;
-
-    Ok(date)
+        .map_err(serde::de::Error::custom)?)
 }
 
 pub(crate) fn de_schedule<'de, D>(deserializer: D) -> Result<bool, D::Error>
@@ -110,9 +109,7 @@ where
         id: String,
     }
 
-    let schedule = Schedule::deserialize(deserializer);
-
-    if let Ok(schedule) = schedule {
+    if let Ok(schedule) = Schedule::deserialize(deserializer) {
         return Ok(schedule.id == "remote");
     }
 
@@ -131,9 +128,10 @@ where
 
     type Specializations = Vec<Specialization>;
 
-    let specs = Specializations::deserialize(deserializer)?;
-
-    Ok(specs.into_iter().map(|s| vec![s.id, s.name]).collect())
+    Ok(Specializations::deserialize(deserializer)?
+        .into_iter()
+        .map(|s| vec![s.id, s.name.to_lowercase()])
+        .collect())
 }
 
 pub(crate) fn de_skills<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
@@ -147,9 +145,18 @@ where
 
     type Skills = Vec<Skill>;
 
-    let skills = Skills::deserialize(deserializer)?;
-
-    Ok(skills.into_iter().map(|s| s.name).collect())
+    Ok(Skills::deserialize(deserializer)?
+        .into_iter()
+        .map(|s| s.name.to_lowercase())
+        .map(|s| {
+            if s.contains("1c") || s.contains("1с") {
+                "1c".into()
+            } else {
+                s
+            }
+        })
+        .map(|s| if s.contains("php") { "php".into() } else { s })
+        .collect())
 }
 
 pub(crate) fn de_experience<'de, D>(deserializer: D) -> Result<u8, D::Error>
@@ -161,9 +168,7 @@ where
         id: &'a str,
     }
 
-    let experience = Experience::deserialize(deserializer);
-
-    if let Ok(experience) = experience {
+    if let Ok(experience) = Experience::deserialize(deserializer) {
         return Ok(match &experience.id {
             &"between1And3" => 1,
             &"between3And6" => 3,
