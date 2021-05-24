@@ -145,6 +145,14 @@ where
 
     type Skills = Vec<Skill>;
 
+    // TODO: rewrite this atrocity
+    // prob. maintain kv map in fs
+    // where k replacee token
+    // and v is the replacement
+    // load it up during runtime
+    // and use to replace tokens
+    // during each transformation cycle
+
     Ok(Skills::deserialize(deserializer)?
         .into_iter()
         .map(|s| s.name.to_lowercase())
@@ -156,6 +164,98 @@ where
             }
         })
         .map(|s| if s.contains("php") { "php".into() } else { s })
+        .map(|s| if s.contains("css") { "css".into() } else { s })
+        .map(|s| if s.contains("html") { "html".into() } else { s })
+        .map(|s| if s.contains("rest") { "rest".into() } else { s })
+        .map(|s| if s == "go" { "golang".into() } else { s })
+        .map(|s| {
+            if s.contains("js") {
+                "javascript".into()
+            } else {
+                s
+            }
+        })
+        .map(|s| {
+            if s.contains("java") {
+                if s.contains("script") {
+                    "javascript".into()
+                } else {
+                    "java".into()
+                }
+            } else {
+                s
+            }
+        })
+        .map(|s| {
+            if s.contains("react") {
+                if s.contains("native") {
+                    "react native".into()
+                } else {
+                    "react".into()
+                }
+            } else {
+                s
+            }
+        })
+        .map(|s| {
+            if s.contains("webpack") {
+                "webpack".into()
+            } else {
+                s
+            }
+        })
+        .map(|s| {
+            if s.contains("front") {
+                "front".into()
+            } else {
+                s
+            }
+        })
+        .map(|s| if s.contains("back") { "back".into() } else { s })
+        .map(|s| if s.contains("full") { "full".into() } else { s })
+        .map(|s| if s.contains("lead") { "lead".into() } else { s })
+        .map(|s| {
+            if s.contains("junior") {
+                "junior".into()
+            } else {
+                s
+            }
+        })
+        .map(|s| {
+            if s.contains("middle") {
+                "middle".into()
+            } else {
+                s
+            }
+        })
+        .map(|s| {
+            if s.contains("senior") {
+                "senior".into()
+            } else {
+                s
+            }
+        })
+        .map(|s| {
+            if s.contains("младший") {
+                "младший".into()
+            } else {
+                s
+            }
+        })
+        .map(|s| {
+            if s.contains("старший") {
+                "старший".into()
+            } else {
+                s
+            }
+        })
+        .map(|s| {
+            if s.contains("ведущий") {
+                "ведущий".into()
+            } else {
+                s
+            }
+        })
         .collect())
 }
 
