@@ -168,13 +168,7 @@ where
         .map(|s| if s.contains("html") { "html".into() } else { s })
         .map(|s| if s.contains("rest") { "rest".into() } else { s })
         .map(|s| if s == "go" { "golang".into() } else { s })
-        .map(|s| {
-            if s.contains("js") {
-                "javascript".into()
-            } else {
-                s
-            }
-        })
+        .map(|s| if s.contains("sap") { "sap".into() } else { s })
         .map(|s| {
             if s.contains("java") {
                 if s.contains("script") {
@@ -182,6 +176,13 @@ where
                 } else {
                     "java".into()
                 }
+            } else {
+                s
+            }
+        })
+        .map(|s| {
+            if s.contains("js") {
+                "javascript".into()
             } else {
                 s
             }
