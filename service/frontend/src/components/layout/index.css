@@ -1,0 +1,25 @@
+.layout {
+    min-width: 320px;
+}
+
+.layout_hg {
+    display: grid;
+    grid-template-areas:
+        "header header header"
+        "main main main"
+        "footer footer footer";
+    grid-template-rows: auto 1fr auto;
+    min-height: 100vh;
+}
+
+.layout_hg__header {
+    grid-area: header;
+}
+
+.layout_hg__main {
+    grid-area: main;
+}
+
+.layout_hg__footer {
+    grid-area: footer;
+}

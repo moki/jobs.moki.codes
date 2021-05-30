@@ -1,0 +1,9 @@
+.section {
+    padding: calc(var(--gc) * 8) calc(var(--gc) * 2);
+}
+
+@media screen and (min-width: 720px) {
+    .section {
+        padding: calc(var(--gc) * 16) calc(var(--gc) * 4);
+    }
+}
