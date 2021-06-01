@@ -1,0 +1,21 @@
+.text {
+    font-size: calc(var(--gc) * 3);
+    line-height: calc(var(--gc) * 5);
+    font-weight: 400;
+
+    max-width: calc(var(--gc) * 75);
+
+    padding: calc(var(--gc) * 1) 0;
+}
+
+@media screen and (min-width: 720px) {
+    .text {
+        font-size: calc(var(--gc) * 4);
+        line-height: calc(var(--gc) * 6);
+        font-weight: 400;
+
+        max-width: calc(var(--gc) * 120);
+
+        padding: calc(var(--gc) * 2) 0;
+    }
+}
