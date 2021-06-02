@@ -58,7 +58,7 @@ export function hook<S, E extends Endpoint>(
     >(reducer, {
         data: initial,
         error: false,
-        loading: false,
+        loading: true,
     });
 
     const [url, setUrl] = useState(ep);
