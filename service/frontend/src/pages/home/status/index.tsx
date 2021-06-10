@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 
 import { Section } from "src/components/section";
 import { Container } from "src/components/container";
@@ -17,8 +17,7 @@ export function Status() {
                     tracking progress
                 </SubHeading>
                 <Text.Component tag="p">
-                    Line chart visualization of the skills, posted job listings
-                    include.
+                    Line chart visualization of the skills jobs include.
                 </Text.Component>
             </Container.Component>
         </Section.Component>

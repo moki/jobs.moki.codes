@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 
 import { Section } from "src/components/section";
 import { Container } from "src/components/container";

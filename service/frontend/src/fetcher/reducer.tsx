@@ -21,7 +21,7 @@ export type State<D> = {
 //
 //       passing actual generic type argument breaks
 //       typesystem's ability to recognize <type> property.
-export function reducer<S, A extends Action<any>>(state: S, action: A) {
+export function reducer<S>(state: S, action: Action<any>) {
     switch (action.type) {
         case FETCH_INIT:
             return { ...state, loading: true, error: false };

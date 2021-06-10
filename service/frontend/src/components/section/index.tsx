@@ -1,18 +1,18 @@
-import { h } from "preact";
+import React, { ReactNode, HTMLProps } from "react";
 
 import "./index.css";
 
-import { ChildrenProp, HTMLAttributes } from "src/components/component";
-
 const classes = "section";
 
-export type SectionProps = ChildrenProp & HTMLAttributes;
-
-function Component({ children, ...rest }: SectionProps) {
-    const cs = classes + (rest.class ? " " + rest.class : "");
+function Component({
+    children,
+    className,
+    ...rest
+}: HTMLProps<HTMLDivElement>) {
+    const cs = classes + (className ? " " + className : "");
 
     return (
-        <div {...rest} class={cs}>
+        <div {...rest} className={cs}>
             {children}
         </div>
     );

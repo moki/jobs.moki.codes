@@ -1,16 +1,14 @@
-import { h } from "preact";
+import React, { HTMLProps } from "react";
 
 import { Section } from "src/components/section";
 
 import "./index.css";
 
-import { ChildrenProp } from "src/components/component";
+const classes = "layout_hg__footer footer";
 
-export type FooterProps = ChildrenProp;
-
-export function Footer({ children }: FooterProps) {
+export function Footer({ children, ...rest }: HTMLProps<HTMLDivElement>) {
     return (
-        <footer class="layout_hg__footer footer">
+        <footer {...rest} className={classes}>
             <Section.Component>{children}</Section.Component>
         </footer>
     );

@@ -8,6 +8,10 @@
     padding: calc(var(--gc) * 1) 0;
 }
 
+.text:last-child {
+    padding-bottom: 0;
+}
+
 @media screen and (min-width: 720px) {
     .text {
         font-size: calc(var(--gc) * 4);

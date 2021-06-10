@@ -1,4 +1,4 @@
-import { useState, useEffect, useReducer } from "preact/hooks";
+import { useState, useEffect, useReducer } from "react";
 
 import {
     reducer,
@@ -53,13 +53,16 @@ export function hook<S, E extends Endpoint>(
     const ep = typeof endpoint === "string" ? endpoint : endpoint.toString();
 
     const [{ data, loading, error }, dispatch] = useReducer<
-        State<S>,
-        Action<S>
-    >(reducer, {
-        data: initial,
-        error: false,
-        loading: true,
-    });
+        (s: State<S>, a: Action<S>) => State<S>
+    >(
+        reducer,
+        {
+            data: initial,
+            error: false,
+            loading: true,
+        },
+        undefined
+    );
 
     const [url, setUrl] = useState(ep);
 
@@ -110,7 +113,9 @@ export function hook<S, E extends Endpoint>(
 
         dispatch({ type: FETCH_INIT });
 
-        return () => (mounted = false);
+        return () => {
+            mounted = false;
+        };
     }, [url, trigger]);
 
     return [setUrl, data, error, loading, restart] as const;

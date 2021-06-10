@@ -1,18 +1,18 @@
-import { h } from "preact";
+import React, { HTMLProps } from "react";
 
 import "./index.css";
 
-import { ChildrenProp, HTMLAttributes } from "src/components/component";
-
 const classes = "container";
 
-export type ContainerProps = ChildrenProp & HTMLAttributes;
-
-function Component({ children, ...rest }: ContainerProps) {
-    const cs = classes + (rest.class ? " " + rest.class : "");
+function Component({
+    children,
+    className,
+    ...rest
+}: HTMLProps<HTMLDivElement>) {
+    const cs = classes + (className ? " " + className : "");
 
     return (
-        <div {...rest} class={cs}>
+        <div {...rest} className={cs}>
             {children}
         </div>
     );

@@ -1,9 +1,11 @@
-import { h } from "preact";
+import React, { HTMLProps } from "react";
 
-import { ChildrenProp } from "src/components/component";
+const classes = "layout_hg__main";
 
-export type MainProps = ChildrenProp;
-
-export function Main({ children }: MainProps) {
-    return <main class="layout_hg__main">{children}</main>;
+export function Main({ children, ...rest }: HTMLProps<HTMLElement>) {
+    return (
+        <main {...rest} className={classes}>
+            {children}
+        </main>
+    );
 }

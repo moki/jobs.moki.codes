@@ -1,21 +1,17 @@
-import { h } from "preact";
+import React, { HTMLProps } from "react";
 
 import "./index.css";
 
-import {
-    TagProp,
-    ChildrenProp,
-    HTMLAttributes,
-} from "src/components/component";
+import { TagProp } from "src/components/component";
+
+export type TextProp = TagProp & HTMLProps<HTMLElement>;
 
 const classes = "text";
 
-export type TextProp = TagProp & ChildrenProp & HTMLAttributes;
+function Component({ tag, className, children, ...rest }: TextProp) {
+    const cs = classes + (className ? " " + className : "");
 
-function Component({ tag, children, ...rest }: TextProp) {
-    const cs = classes + (rest.class ? " " + rest.class : "");
-
-    return h(tag, { ...rest, class: cs }, children);
+    return React.createElement(tag, { ...rest, className: cs }, children);
 }
 
 export const Text = {

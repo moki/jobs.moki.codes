@@ -1,28 +1,27 @@
-import { h } from "preact";
+import React, { HTMLProps } from "react";
 
 import "./index.css";
 
-import {
-    TagProp,
-    ChildrenProp,
-    HTMLAttributes,
-} from "src/components/component";
+import { TagProp } from "src/components/component";
 
-export const SubHeadingLevels = [1, 2 /*, 3, 4, 5, 6*/] as const;
+export const SubHeadingLevels = [1, 2, 3 /*, 4, 5, 6*/] as const;
 
 export type LevelProp = {
     level: typeof SubHeadingLevels[number];
 };
 
-export type SubHeadingProps = TagProp &
-    ChildrenProp &
-    LevelProp &
-    HTMLAttributes;
+export type SubHeadingProps = TagProp & LevelProp & HTMLProps<HTMLElement>;
 
-export function SubHeading({ tag, level, children, ...rest }: SubHeadingProps) {
-    const cs =
+export function SubHeading({
+    tag,
+    level,
+    className,
+    children,
+    ...rest
+}: SubHeadingProps) {
+    const classes =
         `sub-heading sub-heading_level_${level}` +
-        (rest.class ? " " + rest.class : "");
+        (className ? " " + className : "");
 
-    return h(tag, { ...rest, class: cs }, children);
+    return React.createElement(tag, { ...rest, className: classes }, children);
 }

@@ -1,0 +1,35 @@
+.banner {
+    position: relative;
+
+    z-index: 1;
+
+    padding: calc(var(--gc) * 4) 0;
+}
+
+@media screen and (min-width: 720px) {
+    .banner {
+        padding: calc(var(--gc) * 8) 0;
+    }
+}
+
+.banner::before,
+.banner::after {
+    content: "";
+
+    position: absolute;
+    left: 0;
+
+    width: 100%;
+
+    opacity: 0.24;
+    height: var(--gc);
+    box-shadow: inset 0 -1px 0px 0px var(--color-on-primary);
+}
+
+.banner::before {
+    top: 0;
+}
+
+.banner::after {
+    bottom: 0;
+}

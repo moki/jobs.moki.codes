@@ -1,4 +1,8 @@
-import { h, Fragment } from "preact";
+import React from "react";
+
+import { useState, useEffect } from "react";
+
+import { fetcher } from "src/fetcher";
 
 import { Introduction } from "src/pages/home/introduction";
 import { Skills } from "src/pages/home/skills";
@@ -8,10 +12,10 @@ import "./index.css";
 
 export function Home() {
     return (
-        <Fragment>
+        <>
             <Introduction />
             <Skills />
             <Status />
-        </Fragment>
+        </>
     );
 }
