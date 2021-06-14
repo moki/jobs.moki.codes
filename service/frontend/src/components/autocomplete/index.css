@@ -1,0 +1,36 @@
+.autocomplete {
+    position: relative;
+
+    overflow: visible;
+
+    width: 100%;
+
+    padding-bottom: calc(var(--gc) * 2);
+}
+
+.autocomplete__suggestions {
+    position: absolute;
+    z-index: 1;
+    top: calc(var(--gc) * 16 + 2);
+
+    width: 100%;
+
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+
+    box-shadow: -1px 0 0 0 var(--color-on-surface),
+        1px 0 0 0 var(--color-on-surface);
+}
+
+.autocomplete__suggestions-item {
+    padding: calc(var(--gc) * 2) calc(var(--gc) * 2);
+}
+
+.autocomplete__suggestions-item {
+    box-shadow: 0 -1px 0px 0px var(--color-on-surface);
+}
+
+.autocomplete__suggestions-item:last-of-type {
+    box-shadow: 0 1px 0px 0px var(--color-on-surface),
+        0 -1px 0px 0px var(--color-on-surface);
+}
