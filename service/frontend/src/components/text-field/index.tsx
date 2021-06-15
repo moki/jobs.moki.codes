@@ -10,6 +10,8 @@ import React, {
     MouseEvent,
 } from "react";
 
+import { Label } from "src/components/label";
+
 import { HasTarget, TargetHasDataset } from "src/components/component";
 
 import "./index.css";
@@ -47,20 +49,6 @@ export function TextFieldInput({
     );
 }
 
-type TextFieldLabelProps = {
-    text: string;
-} & HTMLProps<HTMLLabelElement>;
-
-export function TextFieldLabel({ id, text }: TextFieldLabelProps) {
-    const classes = "text-field__label";
-
-    return (
-        <label htmlFor={id} className={classes}>
-            {text}
-        </label>
-    );
-}
-
 export type TextFieldProps = {
     label: string;
 } & HTMLProps<HTMLDivElement>;
@@ -77,7 +65,7 @@ export function TextField({ label, placeholder }: TextFieldProps) {
 
     return (
         <div className={classes}>
-            <TextFieldLabel id={id} text={label} />
+            <Label id={id} text={label} />
             <TextFieldInput
                 id={id}
                 value={text}

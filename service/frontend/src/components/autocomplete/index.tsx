@@ -9,7 +9,9 @@ import React, {
 
 import { HasTarget, TargetHasDataset } from "src/components/component";
 
-import { TextFieldLabel, TextFieldInput, ID } from "src/components/text-field";
+import { TextFieldInput, ID } from "src/components/text-field";
+
+import { Label } from "src/components/label";
 
 import "./index.css";
 
@@ -158,7 +160,7 @@ export function Autocomplete<T extends HasLookup>({
 
     return (
         <div className={classes}>
-            <TextFieldLabel id={id} text={label} />
+            <Label id={id} text={label} />
             <TextFieldInput
                 id={id}
                 value={text}

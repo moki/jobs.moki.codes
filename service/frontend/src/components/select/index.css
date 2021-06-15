@@ -1,0 +1,32 @@
+.select {
+    display: inline-block;
+
+    width: 100%;
+}
+
+/*
+.select__label {
+    display: block;
+    padding: calc(var(--gc) * 2) 0;
+
+    font-weight: 500;
+    font-size: calc(var(--gc) * 3);
+    line-height: calc(var(--gc) * 4);
+}
+*/
+
+.select__selector {
+    display: block;
+
+    width: 100%;
+    padding: calc(var(--gc) * 2) calc(var(--gc) * 2);
+
+    font-size: calc(var(--gc) * 4);
+    font-weight: 400;
+
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+
+    box-shadow: 0 0 0 1px var(--color-on-surface);
+    border: none;
+}

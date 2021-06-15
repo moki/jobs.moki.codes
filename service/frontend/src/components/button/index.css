@@ -1,0 +1,29 @@
+.button {
+    opacity: 0.65;
+
+    padding: calc(var(--gc) * 2) calc(var(--gc) * 4);
+
+    font-weight: 300;
+    font-size: calc(var(--gc) * 4);
+    line-height: calc(var(--gc) * 4 + 4px);
+    text-transform: uppercase;
+
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+
+    border: none;
+
+    will-change: opacity;
+    transition: opacity 0.14s ease-in-out;
+}
+
+.button_type_outlined {
+    background-color: transparent;
+    color: var(--color-on-surface);
+
+    box-shadow: 0 0 0 1px var(--color-on-surface);
+}
+
+.button:hover {
+    opacity: 0.95;
+}
