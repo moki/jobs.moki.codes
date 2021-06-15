@@ -5,6 +5,12 @@
     color: var(--color-on-primary);
 }
 
+.header > * {
+    position: relative;
+
+    z-index: 1;
+}
+
 .header::before {
     content: "";
 
