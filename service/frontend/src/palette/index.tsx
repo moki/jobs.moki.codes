@@ -1,5 +1,5 @@
 import { prandIntInRange } from "src/util/prand-int-in-range";
-import { zip } from "src/util/zip";
+import { zip, flatten } from "ramda";
 
 export type Config = {
     hStep: number;
@@ -21,10 +21,7 @@ const defaultConfig = {
     maxA: 100,
 };
 
-export function palette(
-    size: number,
-    config: Config = defaultConfig
-): Array<[number, number, number, number]> {
+export function palette(size: number, config: Config = defaultConfig) {
     let hs = new Set<number>();
 
     let ss = new Array<number>(size);
@@ -51,7 +48,9 @@ export function palette(
         vs[i] = prandIntInRange(config.minA, config.maxA);
     }
 
-    return zip(Array.from(hs), ss, ls, vs) as Array<
-        [number, number, number, number]
-    >;
+    return zip(zip(zip(Array.from(hs), ss), ls), vs).reduce<
+        [number, number, number, number][]
+    >((a: any, x: any) => [...a, flatten(x)], []);
 }
+
+palette(10);

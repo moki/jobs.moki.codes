@@ -1,0 +1,34 @@
+.occurences {
+    padding-top: calc(var(--gc) * 4);
+    min-height: calc(var(--gc) * 150);
+}
+
+.occurences__graph-container {
+    height: calc(var(--gc) * 75);
+    min-height: calc(var(--gc) * 75);
+    width: 100%;
+
+    padding: calc(var(--gc) * 8);
+    /*margin-top: calc(var(--gc) * 8);*/
+    box-shadow: 0 0 0 1px var(--color-on-surface);
+}
+
+.occurences__graph-container > div > div {
+    overflow: visible !important;
+}
+
+.occurences__graph-container svg {
+    overflow: visible !important;
+}
+
+@media screen and (min-width: 720px) {
+    .occurences {
+        padding-top: calc(var(--gc) * 8);
+        min-height: calc(var(--gc) * 150);
+    }
+
+    .occurences__graph-container {
+        height: calc(var(--gc) * 150);
+        width: 100%;
+    }
+}
