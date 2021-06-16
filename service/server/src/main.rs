@@ -16,6 +16,7 @@ async fn main() -> Result<(), std::io::Error> {
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Compress::default())
+            .wrap(middleware::DefaultHeaders::new().header("Access-Control-Allow-Origin", "*"))
             .data(pool.clone())
             .service(web::scope("/api").route("/skills", web::get().to(handlers::skills)))
     })
