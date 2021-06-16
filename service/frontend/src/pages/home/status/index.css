@@ -1,0 +1,27 @@
+.status__implemented,
+.status__unimplemented {
+    padding-top: calc(var(--gc) * 4);
+}
+
+.status__list {
+    padding-top: calc(var(--gc) * 1);
+}
+
+.status-list__item {
+    padding-bottom: calc(var(--gc) * 1);
+}
+
+@media screen and (min-width: 720px) {
+    .status__implemented,
+    .status__unimplemented {
+        padding-top: calc(var(--gc) * 8);
+    }
+
+    .status__list {
+        padding-top: calc(var(--gc) * 2);
+    }
+
+    .status-list__item {
+        padding-bottom: calc(var(--gc) * 2);
+    }
+}

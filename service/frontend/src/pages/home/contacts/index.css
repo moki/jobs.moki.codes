@@ -1,0 +1,30 @@
+.link-items {
+    padding-top: calc(var(--gc) * 4);
+}
+
+@media screen and (min-width: 720px) {
+    .link-items {
+        padding-top: calc(var(--gc) * 8);
+    }
+}
+
+.link-item {
+    padding-bottom: calc(var(--gc) * 1);
+}
+
+.link {
+    opacity: 0.65;
+
+    color: var(--color-on-surface);
+
+    font-size: calc(var(--gc) * 3);
+    line-height: calc(var(--gc) * 4);
+    font-weight: 500;
+
+    will-change: opacity;
+    transition: opacity 0.14s ease-in-out;
+}
+
+.link:hover {
+    opacity: 0.9;
+}

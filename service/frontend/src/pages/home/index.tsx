@@ -7,6 +7,7 @@ import { fetcher } from "src/fetcher";
 import { Introduction } from "src/pages/home/introduction";
 import { Skills } from "src/pages/home/skills";
 import { Status } from "src/pages/home/status";
+import { Contacts } from "src/pages/home/contacts";
 
 import "./index.css";
 
@@ -16,6 +17,7 @@ export function Home() {
             <Introduction />
             <Skills />
             <Status />
+            <Contacts />
         </>
     );
 }

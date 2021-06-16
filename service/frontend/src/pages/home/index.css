@@ -43,6 +43,7 @@
     z-index: 1;
 }
 
+/*
 .layout_hg__main .section:last-of-type {
     background-color: var(--color-background);
 }
@@ -51,3 +52,4 @@
 .layout_hg__main .section:last-of-type::before {
     display: none;
 }
+*/
