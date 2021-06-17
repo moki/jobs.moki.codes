@@ -23,6 +23,7 @@ type Arguments struct {
 	JSTarget    string `yaml:"js_target"`
 	CSSEntry    string `yaml:"css_entry"`
 	HTMLEntry   string `yaml:"html_entry"`
+	HTMLTarget  string `yaml:"html_target"`
 	JSXFactory  string `yaml:"jsx_factory"`
 	JSXFragment string `yaml:"jsx_fragment"`
 }

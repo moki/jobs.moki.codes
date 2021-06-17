@@ -11,7 +11,7 @@ const nargs int = 2
 
 func readArguments() string {
 	if len(os.Args) != nargs {
-		return "config/config.yml"
+		return "config/development.yml"
 	}
 
 	return os.Args[1]
