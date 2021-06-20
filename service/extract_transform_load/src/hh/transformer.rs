@@ -146,11 +146,12 @@ where
     type Skills = Vec<Skill>;
 
     // TODO: rewrite this atrocity
+    // replace/merge list
     // prob. maintain kv map in fs
     // where k replacee token
     // and v is the replacement
     // load it up during runtime
-    // and use to replace tokens
+    // and use it to replace tokens
     // during each transformation cycle
 
     Ok(Skills::deserialize(deserializer)?
@@ -163,26 +164,32 @@ where
                 s
             }
         })
-        .map(|s| if s.contains("php") { "php".into() } else { s })
-        .map(|s| if s.contains("css") { "css".into() } else { s })
-        .map(|s| if s.contains("html") { "html".into() } else { s })
-        .map(|s| if s.contains("rest") { "rest".into() } else { s })
-        .map(|s| if s == "go" { "golang".into() } else { s })
-        .map(|s| if s.contains("sap") { "sap".into() } else { s })
         .map(|s| {
-            if s.contains("java") {
-                if s.contains("script") {
-                    "javascript".into()
-                } else {
-                    "java".into()
-                }
+            if s.contains("c++") || s.contains("с++") {
+                "c++".into()
             } else {
                 s
             }
         })
+        .map(|s| if s.contains("php") { "php".into() } else { s })
+        .map(|s| if s.contains("css") { "css".into() } else { s })
+        .map(|s| if s.contains("html") { "html".into() } else { s })
+        .map(|s| if s.contains("rest") { "rest".into() } else { s })
         .map(|s| {
-            if s.contains("js") {
-                "javascript".into()
+            if s == "go" || s == "go lang" {
+                "golang".into()
+            } else {
+                s
+            }
+        })
+        .map(|s| if s.contains("sap") { "sap".into() } else { s })
+        .map(|s| {
+            if s.contains("java") {
+                if s.contains("script") {
+                    "js".into()
+                } else {
+                    "java".into()
+                }
             } else {
                 s
             }

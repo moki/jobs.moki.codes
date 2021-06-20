@@ -1,4 +1,7 @@
+#![allow(dead_code)]
+
 use std::error::Error;
+use std::fs::remove_file;
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -20,15 +23,17 @@ pub struct State {
 impl State {
     // new - creates new or restores previously held state from fs
     pub fn new(path: PathBuf) -> Self {
-        let state = State {
+        State {
             start_from: Utc::now(),
             path: path,
-        };
+        }
 
+        /*
         match state.restore() {
             Ok(state) => state,
             _ => state,
         }
+        */
     }
 
     // restore - restores state from the filesystem
@@ -45,6 +50,13 @@ impl State {
         let file = File::create(&self.path)?;
 
         serde_yaml::to_writer(file, self)?;
+
+        Ok(())
+    }
+
+    // clean - clean up state from the filesystem
+    pub fn clean(&self) -> Result<(), Box<dyn Error>> {
+        remove_file(&self.path)?;
 
         Ok(())
     }

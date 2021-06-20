@@ -15,6 +15,7 @@ const DEDUPLICATE_STMT: &str = "optimize table jobs_moki_codes.jobs final DEDUPL
 
 const CREATE_TABLE_STMT: &str = "create table if not exists jobs_moki_codes.jobs (
         local_id                String,
+        source                  String,
         title                   String,
         area                    String,
         salary_avg              Nullable(UInt64),
@@ -83,6 +84,7 @@ impl ClickHouse {
         let mut exps: Vec<u8> = Vec::with_capacity(size);
         let mut spec_ids: Vec<Vec<String>> = Vec::with_capacity(size);
         let mut spec_names: Vec<Vec<String>> = Vec::with_capacity(size);
+        let sources: Vec<String> = (0..jobs.len()).into_iter().map(|_| "hh".into()).collect();
 
         for job in jobs {
             ids.push(job.id.to_owned());
@@ -123,6 +125,7 @@ impl ClickHouse {
 
         let block = Block::new()
             .column("local_id", ids)
+            .column("source", sources)
             .column("title", titles)
             .column("area", areas)
             .column("salary_avg", salary_avg)
