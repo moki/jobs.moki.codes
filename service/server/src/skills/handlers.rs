@@ -5,10 +5,12 @@ use std::iter::FromIterator;
 use actix_web::{web, HttpResponse, Responder};
 //use chrono::{DateTime, Duration, Utc};
 use chrono::{Duration, Utc};
-use clickhouse_rs::Pool;
-use futures::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 
+//use clickhouse_rs::Pool;
+use futures::stream::StreamExt;
+
+use crate::Context;
 use crate::Result;
 
 /*
@@ -59,11 +61,15 @@ async fn parse_query(q: &web::Query<Query>) -> (String, String) {
 }
 */
 
-async fn retrieve_data<T>(pool: web::Data<Pool>, from: T, to: T) -> Result<Vec<(u32, Vec<String>)>>
+async fn retrieve_data<T>(
+    ctx: web::Data<Context>,
+    from: T,
+    to: T,
+) -> Result<Vec<(u32, Vec<String>)>>
 where
     T: AsRef<str> + std::fmt::Display,
 {
-    let mut client = pool.get_handle().await?;
+    let mut client = ctx.pool.get_handle().await?;
 
     let query = format!("select toYYYYMMDD(created), flatten(groupArray(skills)) from jobs_moki_codes.jobs where toYYYYMMDD(created) between {} and {} group by toYYYYMMDD(created) order by toYYYYMMDD(created) asc", from, to);
 
@@ -85,11 +91,15 @@ where
 }
 
 // TODO: cache data
-async fn aggregate_data<T>(pool: web::Data<Pool>, from: T, to: T) -> Result<Vec<SkillColumnarData>>
+async fn aggregate_data<T>(
+    ctx: web::Data<Context>,
+    from: T,
+    to: T,
+) -> Result<Vec<SkillColumnarData>>
 where
     T: AsRef<str> + std::fmt::Display,
 {
-    let data = retrieve_data(pool, from, to).await?;
+    let data = retrieve_data(ctx, from, to).await?;
 
     let mut skill_skill_data = HashMap::new();
 
@@ -127,7 +137,7 @@ where
 
 //pub async fn skills(pool: web::Data<Pool>, q: web::Query<Query>) -> impl Responder {
 // temp: serve only last month worth of data
-pub async fn skills(pool: web::Data<Pool>) -> impl Responder {
+pub async fn skills(ctx: web::Data<Context>) -> impl Responder {
     //let (from, to) = parse_query(&q).await;
     let (from, to) = (
         (Utc::now() - Duration::days(30))
@@ -136,7 +146,7 @@ pub async fn skills(pool: web::Data<Pool>) -> impl Responder {
         Utc::now().format("%Y%m%d").to_string(),
     );
 
-    match aggregate_data(pool, from, to).await {
+    match aggregate_data(ctx, from, to).await {
         Ok(data) => HttpResponse::Ok().json(data),
         _ => HttpResponse::BadRequest().body("400"),
     }

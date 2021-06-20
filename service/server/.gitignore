@@ -14,9 +14,13 @@ target/
 
 # configuration files
 config/
+.env
 
 # data files
 data/
 
 # internals files
 internals/
+
+# static files
+static/

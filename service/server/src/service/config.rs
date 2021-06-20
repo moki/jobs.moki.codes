@@ -7,11 +7,15 @@ use serde_yaml;
 // Config - server configuration options
 //
 // clickhouse_uri - clickhouse database connection uri
+// static_dir     - static files directory
+// static_path    - serve static files from path
 // host           - server host
 // port           - server port
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub clickhouse_uri: String,
+    pub static_dir: String,
+    pub static_path: String,
     pub host: String,
     pub port: u16,
 }
