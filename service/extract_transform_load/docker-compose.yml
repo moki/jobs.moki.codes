@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  extract_transform_load:
+    container_name: etl.jobs.moki.codes
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - jobs.moki.codes
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+
+networks:
+  jobs.moki.codes:
+    external:
+      name: jobs.moki.codes
