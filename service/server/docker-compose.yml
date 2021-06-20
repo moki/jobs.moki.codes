@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  server:
+    container_name: server.jobs.moki.codes
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - jobs.moki.codes
+      - proxy
+    depends_on:
+      - storage
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        window: 1s
+    # prod
+    expose:
+      - '80'
+    # dev
+    #expose:
+    #  - '6500'
+    environment:
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
+      - VIRTUAL_PORT=${VIRTUAL_PORT}
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+  storage:
+    container_name: storage.jobs.moki.codes
+    image: yandex/clickhouse-server:latest-alpine
+    volumes:
+      - clickhouse.jobs.moki.codes:/var/lib/clickhouse
+    networks:
+      - jobs.moki.codes
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    expose:
+      - '9000'
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+
+volumes:
+  clickhouse.jobs.moki.codes:
+    name: "clickhouse.jobs.moki.codes"
+networks:
+  jobs.moki.codes:
+    name: "jobs.moki.codes"
+  # prod
+  proxy:
+    external:
+      name: nginx-proxy
