@@ -1,32 +1,91 @@
 .select {
-    display: inline-block;
+    flex-grow: 1;
+    flex-shrink: 0;
 
-    width: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
 }
 
-/*
-.select__label {
-    display: block;
-    padding: calc(var(--gc) * 2) 0;
+.select__options {
+    position: relative;
 
-    font-weight: 500;
-    font-size: calc(var(--gc) * 3);
-    line-height: calc(var(--gc) * 4);
-}
-*/
-
-.select__selector {
-    display: block;
-
-    width: 100%;
-    padding: calc(var(--gc) * 2) calc(var(--gc) * 2);
+    overflow: visible;
 
     font-size: calc(var(--gc) * 4);
+    line-height: calc(var(--gc) * 4);
     font-weight: 400;
+
+    cursor: pointer;
+}
+
+.select-options__selected {
+    height: calc(var(--gc) * 8);
+    line-height: calc(var(--gc) * 4 - var(--gc) / 2);
+
+    padding: calc(var(--gc) * 2) calc(var(--gc) * 2);
 
     background-color: var(--color-surface);
     color: var(--color-on-surface);
 
-    box-shadow: 0 0 0 1px var(--color-on-surface);
-    border: none;
+    box-shadow: 0px 1px 0px 0px var(--color-on-surface),
+        0 -1px 0 0px var(--color-on-surface),
+        -1px 0 0px 0px var(--color-on-surface),
+        1px 0 0px 0px var(--color-on-surface);
+}
+
+.select-options__suggestions {
+    z-index: 1;
+
+    position: absolute;
+    overflow: visible;
+
+    top: calc(var(--gc) * 8);
+    left: 0;
+    width: 100%;
+
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+
+    box-shadow: 0px 1px 0px 0px var(--color-on-surface),
+        0 -1px 0 0px var(--color-on-surface),
+        -1px 0 0px 0px var(--color-on-surface),
+        1px 0 0px 0px var(--color-on-surface);
+}
+
+.select-options__suggestions_open {
+    display: block;
+}
+
+.select-options__suggestions_close {
+    display: none;
+}
+
+.select-options-suggestions__suggestion {
+    height: calc(var(--gc) * 8);
+    line-height: calc(var(--gc) * 4 - var(--gc) / 2);
+
+    padding: calc(var(--gc) * 2) calc(var(--gc) * 2);
+}
+
+.select-options-suggestions__suggestion:focus,
+.select-options__selected:focus,
+.select-options-suggestions__suggestion:hover,
+.select-options__selected:hover {
+    opacity: 0.75;
+
+    background-color: var(--color-primary-light);
+    color: var(--color-on-primary-light);
+
+    outline: none;
+}
+
+.select-options-suggestions__suggestion:not(:last-of-type) {
+    box-shadow: 0px 1px 0px 0px var(--color-on-surface);
 }

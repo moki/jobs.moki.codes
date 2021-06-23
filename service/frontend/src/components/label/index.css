@@ -1,9 +1,10 @@
 .label {
+    opacity: 0.75;
+
     display: block;
+    margin-bottom: calc(var(--gc) * 2);
 
-    padding: calc(var(--gc) * 2) 0;
-
-    font-weight: 500;
     font-size: calc(var(--gc) * 3);
     line-height: calc(var(--gc) * 4);
+    font-weight: 500;
 }

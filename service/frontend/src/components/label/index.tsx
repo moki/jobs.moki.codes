@@ -2,11 +2,12 @@ import React, { HTMLProps } from "react";
 
 import "./index.css";
 
-type LabelProps = {
+export type LabelProps = {
     text: string;
+    id: string;
 } & HTMLProps<HTMLLabelElement>;
 
-export function Label({ id, text }: LabelProps) {
+export function Label({ text, id }: LabelProps) {
     const classes = "label";
 
     return (

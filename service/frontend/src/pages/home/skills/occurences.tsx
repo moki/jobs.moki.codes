@@ -15,7 +15,7 @@ import { Text } from "src/components/text";
 
 import { TextField } from "src/components/text-field";
 import { Label } from "src/components/label";
-import { Select } from "src/components/select";
+import { Select, Option } from "src/components/select";
 import { Button } from "src/components/button";
 import { Autocomplete } from "src/components/autocomplete";
 
@@ -212,10 +212,25 @@ export function Occurences(this: any) {
 
     const [dataset, setDataset] = useState<skill[]>([]);
 
-    const [top, setTop] = useState<number>(5);
+    const filters = [
+        { k: "top 5", v: 5 },
+        { k: "top 10", v: 10 },
+        { k: "top 25", v: 25 },
+        { k: "top 50", v: 50 },
+        { k: "top 100", v: 100 },
+        {
+            k: "all",
+            v: data.length,
+        },
+        { k: "none", v: 0 },
+    ];
 
-    const handleSelect = (top: number) => {
-        setTop(top);
+    //const [top, setTop] = useState<number>(5);
+    const [top, setTop] = useState<Option>(filters[0]);
+
+    const selectHandler = (option: Option) => {
+        //setTop(v);
+        setTop(option);
     };
 
     const handleAddSkill = ({ key, value }: { key: string; value: number }) => {
@@ -227,7 +242,7 @@ export function Occurences(this: any) {
     };
 
     const handleReset = () => {
-        setTop(0);
+        setTop(filters[filters.length - 1]);
         setDataset([]);
     };
 
@@ -238,7 +253,7 @@ export function Occurences(this: any) {
     }
 
     useEffect(() => {
-        setDataset(data.slice(0, top));
+        setDataset(data.slice(0, top.v));
     }, [loading, error, top]);
 
     useEffect(() => {
@@ -268,23 +283,12 @@ export function Occurences(this: any) {
             </Text.Component>
             {!loading && !error && keys && (
                 <>
-                    <div style={{ display: "flex" }}>
+                    <div className="occurences__controls">
                         <Select
-                            active={top.toString()}
-                            handleSelect={handleSelect}
                             label="filter"
-                            options={[
-                                { k: "top 5", v: 5 },
-                                { k: "top 10", v: 10 },
-                                { k: "top 25", v: 25 },
-                                { k: "top 50", v: 50 },
-                                { k: "top 100", v: 100 },
-                                {
-                                    k: "all",
-                                    v: data.length,
-                                },
-                                { k: "none", v: 0 },
-                            ]}
+                            options={filters}
+                            selected={top}
+                            handleSelect={selectHandler}
                         />
                         <div style={{ paddingLeft: "calc(var(--gc) * 2)" }}>
                             <Label text="prestine" id="button-reset" />

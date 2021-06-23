@@ -3,6 +3,11 @@
     min-height: calc(var(--gc) * 150);
 }
 
+.occurences__controls {
+    display: flex;
+    align-items: center;
+}
+
 .occurences__graph-container {
     height: calc(var(--gc) * 75);
     min-height: calc(var(--gc) * 75);
