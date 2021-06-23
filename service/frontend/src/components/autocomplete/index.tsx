@@ -1,5 +1,6 @@
 import React, {
     useState,
+    useRef,
     HTMLProps,
     FocusEvent,
     KeyboardEvent,
@@ -7,11 +8,11 @@ import React, {
     MouseEvent,
 } from "react";
 
+import { useOutsideEventAwareness } from "src/hooks/use-outside-event-awareness";
+
 import { HasTarget, TargetHasDataset } from "src/components/component";
 
-import { TextFieldInput, ID } from "src/components/text-field";
-
-import { Label } from "src/components/label";
+import { TextField } from "src/components/text-field";
 
 import "./index.css";
 
@@ -61,9 +62,9 @@ function Suggestions({ suggestions, handlePick, clearUI }: SuggestionsProps) {
 
         const { key, value } = dataset;
 
-        clearUI();
-
         handlePick({ key, value });
+
+        clearUI();
     };
 
     const handleClick = (
@@ -81,22 +82,22 @@ function Suggestions({ suggestions, handlePick, clearUI }: SuggestionsProps) {
 
         const { key, value } = dataset;
 
-        clearUI();
-
         handlePick({ key, value });
+
+        clearUI();
     };
 
     const classes = {
-        list: "autocomplete__suggestions",
-        item: "autocomplete__suggestions-item",
-    };
-
-    const styles = {
-        display: suggestions.length ? "block" : "none",
+        list:
+            "autocomplete__suggestions" +
+            " " +
+            "autocomplete-suggestions_" +
+            (suggestions.length ? "open" : "close"),
+        item: "autocomplete-suggestions__item",
     };
 
     return (
-        <ul className={classes.list} style={styles}>
+        <ul className={classes.list}>
             {suggestions.map((pair, i: number) => (
                 <li
                     data-key={pair.key}
@@ -106,7 +107,7 @@ function Suggestions({ suggestions, handlePick, clearUI }: SuggestionsProps) {
                     tabIndex={0}
                     onFocus={handleFocus}
                     onKeyPress={handleKeyPress}
-                    onClick={handleClick}
+                    onMouseDown={handleClick}
                 >
                     {pair.key}
                 </li>
@@ -134,22 +135,28 @@ export function Autocomplete<T extends HasLookup>({
 }: AutocompleteProps<T>) {
     const classes = "autocomplete";
 
-    const id = ID.next();
-
     const [text, setText] = useState("");
 
     const [suggestions, setSuggestions] = useState<LookupResult>([]);
 
-    const handleChange = (e: ChangeEvent & HasTarget) => {
+    const changeHandler = (e: ChangeEvent & HasTarget) => {
         if (!e || !e.target) return;
 
         setText(e.target.value);
 
         if (e.target.value) {
-            setSuggestions(trie.lookup(e.target.value).map((pair) => pair));
+            setSuggestions(
+                trie.lookup(e.target.value.toLowerCase()).map((pair) => pair)
+            );
         } else {
             setSuggestions([]);
         }
+    };
+
+    const pickHandler = (entry: LookupEntry) => {
+        setText(entry.key);
+
+        handlePick(entry);
     };
 
     const clearUI = () => {
@@ -158,18 +165,31 @@ export function Autocomplete<T extends HasLookup>({
         setSuggestions([]);
     };
 
+    const eventOutsideHandler = () => {
+        setText("");
+
+        setSuggestions([]);
+    };
+
+    const ref = useRef(null);
+
+    useOutsideEventAwareness(
+        ref,
+        ["mousedown", "touchstart"],
+        eventOutsideHandler
+    );
+
     return (
-        <div className={classes}>
-            <Label id={id} text={label} />
-            <TextFieldInput
-                id={id}
-                value={text}
-                handleChange={handleChange}
+        <div className={classes} ref={ref}>
+            <TextField
+                label={label}
                 placeholder={placeholder}
+                handleChange={changeHandler}
+                value={text}
             />
             <Suggestions
                 suggestions={suggestions}
-                handlePick={handlePick}
+                handlePick={pickHandler}
                 clearUI={clearUI}
             />
         </div>

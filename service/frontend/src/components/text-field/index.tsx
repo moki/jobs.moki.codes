@@ -1,6 +1,7 @@
 import React, {
     HTMLProps,
     useState,
+    useEffect,
     ChangeEvent,
     ChangeEventHandler,
     FocusEvent,
@@ -51,16 +52,27 @@ export function TextFieldInput({
 
 export type TextFieldProps = {
     label: string;
+    value: string;
+    handleChange?: ChangeEventHandler;
 } & HTMLProps<HTMLDivElement>;
 
-export function TextField({ label, placeholder }: TextFieldProps) {
+export function TextField({
+    label,
+    placeholder,
+    handleChange,
+    value,
+}: TextFieldProps) {
     const classes = "text-field";
     const id = ID.next();
 
-    const [text, setText] = useState("");
+    const [text, setText] = useState(value);
 
-    const handleChange = (e: ChangeEvent & HasTarget) => {
+    useEffect(() => setText(value), [value]);
+
+    const changeHandler = (e: ChangeEvent & HasTarget) => {
         setText(e.target.value);
+
+        handleChange && handleChange(e);
     };
 
     return (
@@ -69,10 +81,9 @@ export function TextField({ label, placeholder }: TextFieldProps) {
             <TextFieldInput
                 id={id}
                 value={text}
-                handleChange={handleChange}
+                handleChange={changeHandler}
                 placeholder={placeholder}
             />
-            {text}
         </div>
     );
 }
