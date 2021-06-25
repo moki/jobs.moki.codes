@@ -2,7 +2,7 @@
     opacity: 0.75;
 
     display: block;
-    margin-bottom: calc(var(--gc) * 2);
+    padding-bottom: calc(var(--gc) * 2);
 
     font-size: calc(var(--gc) * 3);
     line-height: calc(var(--gc) * 4);
