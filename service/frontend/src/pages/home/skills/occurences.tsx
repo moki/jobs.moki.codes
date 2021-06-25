@@ -28,7 +28,7 @@ import { scaleLinear, scaleTime, scaleOrdinal } from "@visx/scale";
 import { extent, max } from "d3-array";
 
 import { LinePath } from "@visx/shape";
-import { curveStepAfter, curveLinear } from "@visx/curve";
+import { curveLinear } from "@visx/curve";
 import { LegendOrdinal, LegendItem, LegendLabel } from "@visx/legend";
 
 import "./occurences.css";
@@ -42,53 +42,71 @@ type skill = {
 
 type state = skill[];
 
-type KeysProps = {
-    keys: [string, [number, number, number, number]][];
+export type ControlsProps = {
+    data: skill[];
+    dataset: skill[];
+    update: (dataset: skill[]) => void;
 };
 
-// The whole thing is pretty ugly
-// TODO: rewrite
+export function Controls({ data, dataset, update }: ControlsProps) {
+    let trie = new Trie<number>();
 
-function Keys({ keys }: KeysProps) {
-    const scale = scaleOrdinal({
-        domain: keys.map(([name]) => name),
-        range: keys.map(([_, color], i: number) => {
-            return `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, ${color[3]}%`;
-        }),
-    });
+    for (let i = 0; i < data.length; i++) {
+        trie.insert(data[i].name, i);
+    }
+
+    const filters = [
+        { k: "top 5", v: 5 },
+        { k: "top 10", v: 10 },
+        { k: "top 25", v: 25 },
+        { k: "top 50", v: 50 },
+        { k: "top 100", v: 100 },
+        {
+            k: "all",
+            v: data.length,
+        },
+        { k: "none", v: 0 },
+    ];
+
+    const [top, setTop] = useState<Option>(filters[0]);
+
+    const selectHandler = (option: Option) => {
+        setTop(option);
+    };
+
+    const handleAddSkill = ({ key, value }: { key: string; value: number }) => {
+        if (!dataset.includes(data[value])) update([...dataset, data[value]]);
+    };
+
+    const handleReset = () => {
+        setTop(filters[filters.length - 1]);
+
+        update([]);
+    };
+
+    useEffect(() => update(data.slice(0, top.v)), [top]);
 
     return (
-        <LegendOrdinal scale={scale}>
-            {(labels) => (
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        flexWrap: "wrap",
-                        //gap: "var(--gc)",
-                        paddingTop: "calc(var(--gc) * 4)",
-                    }}
-                >
-                    {labels.map((label, i) => (
-                        <LegendItem key={`legend-quantile-${i}`} margin="0 0">
-                            <svg width={"12"} height={"12"}>
-                                <rect
-                                    fill={label.value}
-                                    width={"12"}
-                                    height={"12"}
-                                />
-                            </svg>
-                            <LegendLabel
-                                align="left"
-                                margin="calc(var(--gc)/2) var(--gc)"
-                            >
-                                {label.text}
-                            </LegendLabel>
-                        </LegendItem>
-                    ))}
-                </div>
-            )}
-        </LegendOrdinal>
+        <div className="occurences__controls">
+            <Select
+                label="filter"
+                options={filters}
+                selected={top}
+                handleSelect={selectHandler}
+            />
+            <div>
+                <Label text="prestine" id="button-reset" />
+                <Button type="outlined" onClick={handleReset} id="button-reset">
+                    reset
+                </Button>
+            </div>
+            <Autocomplete
+                trie={trie}
+                label="add skill"
+                placeholder="try typing react or smth"
+                handlePick={handleAddSkill}
+            />
+        </div>
     );
 }
 
@@ -96,55 +114,49 @@ type GraphProps = {
     dataset: state;
     width: number;
     height: number;
+    palette: string[];
 } & HTMLProps<HTMLDivElement>;
 
-function Graph({ dataset, width, height }: GraphProps) {
-    const colors = palette(dataset.length);
+function Graph({ dataset, palette, width, height }: GraphProps) {
+    if (!dataset.length)
+        return (
+            <div className="occurences__graph-placeholder">
+                <Text.Component tag="p">add datapoints</Text.Component>
+            </div>
+        );
 
-    let ays = [];
+    const ys = dataset.reduce((acc, occ) => {
+        return [...acc, ...occ.occurences];
+    }, [] as Array<number>);
 
-    const dl = dataset.length;
+    const xs = dataset[0].dates.map((x: number, i: number) => {
+        const day = x % 100;
 
-    const max_occ_len = dataset.length ? dataset[0].occurences.length : 0;
+        x = Math.floor(x / 100);
 
-    let min_xs_i = 0;
+        const month = x % 100;
 
-    for (let i = 0; i < dl; i++) {
-        ays.push(...dataset[i].occurences);
+        x = Math.floor(x / 100);
 
-        if (dataset[i].dates.length < min_xs_i)
-            min_xs_i = dataset[i].dates.length;
-    }
+        return new Date(Date.UTC(x, month - 1, day));
+    });
 
-    const axs = dataset.length
-        ? dataset[min_xs_i].dates.map((x: number, i: number) => {
-              const day = x % 100;
-
-              x = Math.floor(x / 100);
-
-              const month = x % 100;
-
-              x = Math.floor(x / 100);
-
-              return new Date(Date.UTC(x, month - 1, day));
-          })
-        : [];
-
-    const [ymin, ymax] = extent(ays) as [number, number];
-
+    const [ymin, ymax] = extent(ys) as [number, number];
     const yScale = scaleLinear({
         domain: [ymin, ymax],
         range: [height, 0],
     });
 
-    const [xmin, xmax] = extent(axs) as [Date, Date];
+    const [xmin, xmax] = extent(xs) as [Date, Date];
     const xScale = scaleTime({
         domain: [xmin, xmax],
         range: [0, width],
     });
 
-    const bticks =
-        width + 32 * 2 + 16 * 2 < 720 ? max_occ_len / 4 : max_occ_len / 2;
+    const ticks =
+        width + 32 * 2 + 16 * 2 < 720
+            ? dataset[0].occurences.length / 4
+            : dataset[0].occurences.length / 2;
 
     return (
         <ScaleSVG width={width} height={height}>
@@ -162,18 +174,10 @@ function Graph({ dataset, width, height }: GraphProps) {
                 stroke="var(--color-on-surface)"
                 strokeOpacity={0.25}
             />
-            <AxisBottom top={height} scale={xScale} numTicks={bticks} />
+            <AxisBottom top={height} scale={xScale} numTicks={ticks} />
             <AxisLeft left={0} scale={yScale} />
             {dataset.map((data, i: number) => {
-                const xs = axs;
-
-                const ys = data.occurences;
-
-                if (xs.length !== ys.length) return null;
-
-                const _d = zip(xs, ys);
-
-                const stroke = `hsla(${colors[i][0]}, ${colors[i][1]}%, ${colors[i][2]}%, ${colors[i][3]}%`;
+                const _d = zip(xs, data.occurences);
 
                 return (
                     <LinePath
@@ -181,7 +185,7 @@ function Graph({ dataset, width, height }: GraphProps) {
                         data={_d}
                         x={(d) => xScale(d[0] ?? xmin)}
                         y={(d) => yScale(d[1] ?? ymin)}
-                        stroke={stroke}
+                        stroke={palette[i]}
                         strokeWidth={1.75}
                         strokeOpacity={1}
                         key={i}
@@ -193,15 +197,78 @@ function Graph({ dataset, width, height }: GraphProps) {
     );
 }
 
+type KeysProps = {
+    palette: string[];
+    dataset: skill[];
+};
+
+function Keys({ dataset, palette }: KeysProps) {
+    const keys = [dataset.map(({ name }) => name), palette];
+
+    const scale = scaleOrdinal({
+        domain: keys[0],
+        range: keys[1],
+    });
+
+    return (
+        <LegendOrdinal scale={scale}>
+            {(labels) => (
+                <div className="graph-keys">
+                    {labels.map((label, i) => (
+                        <LegendItem
+                            key={"graph-key-" + i}
+                            className="graph-keys__key"
+                        >
+                            <svg className="graph-keys-key__image">
+                                <rect fill={label.value} />
+                            </svg>
+                            <LegendLabel className="graph-keys-key__text">
+                                {label.text}
+                            </LegendLabel>
+                        </LegendItem>
+                    ))}
+                </div>
+            )}
+        </LegendOrdinal>
+    );
+}
+
+export type OccurencesGraphProps = {
+    dataset: skill[];
+};
+
+function OccurencesGraph({ dataset }: OccurencesGraphProps) {
+    const colors = palette(dataset.length).map(
+        (color) => `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, ${color[3]}%)`
+    );
+
+    return (
+        <>
+            <div className="occurences__graph-container">
+                <ParentSize className="occurences_graph-container-responsive">
+                    {({ width, height }) => (
+                        <Graph
+                            height={height}
+                            width={width}
+                            dataset={dataset}
+                            palette={colors}
+                        />
+                    )}
+                </ParentSize>
+            </div>
+            <Keys dataset={dataset} palette={colors} />
+        </>
+    );
+}
+
 const endpoint = "api/skills";
 
 const selector = (o: any): skill[] => o;
 
-export function Occurences(this: any) {
+export function Occurences() {
     const classes = "occurences";
 
     const initial: state = [];
-    const trie = new Trie<number>();
 
     const [setUrl, data, error, loading, restart] = fetcher(
         endpoint,
@@ -212,63 +279,9 @@ export function Occurences(this: any) {
 
     const [dataset, setDataset] = useState<skill[]>([]);
 
-    const filters = [
-        { k: "top 5", v: 5 },
-        { k: "top 10", v: 10 },
-        { k: "top 25", v: 25 },
-        { k: "top 50", v: 50 },
-        { k: "top 100", v: 100 },
-        {
-            k: "all",
-            v: data.length,
-        },
-        { k: "none", v: 0 },
-    ];
-
-    //const [top, setTop] = useState<number>(5);
-    const [top, setTop] = useState<Option>(filters[0]);
-
-    const selectHandler = (option: Option) => {
-        //setTop(v);
-        setTop(option);
-    };
-
-    const handleAddSkill = ({ key, value }: { key: string; value: number }) => {
-        const n = [...dataset];
-
-        if (!n.includes(data[value])) n.push(data[value]);
-
-        setDataset(n);
-    };
-
-    const handleReset = () => {
-        setTop(filters[filters.length - 1]);
-        setDataset([]);
-    };
-
-    if (!loading && !error) {
-        for (let i = 0; i < data.length; i++) {
-            trie.insert(data[i].name, i);
-        }
-    }
-
-    useEffect(() => {
-        setDataset(data.slice(0, top.v));
-    }, [loading, error, top]);
-
     useEffect(() => {
         if (error) restart(10000);
     }, [error]);
-
-    let keys;
-    if (!loading && !error) {
-        const colors = palette(data.length);
-
-        keys = zip(
-            dataset.map(({ name }) => name),
-            colors!
-        );
-    }
 
     return (
         <div className={classes}>
@@ -281,44 +294,14 @@ export function Occurences(this: any) {
             <Text.Component tag="p">
                 This graph depicts skill popularity.
             </Text.Component>
-            {!loading && !error && keys && (
+            {!loading && !error && (
                 <>
-                    <div className="occurences__controls">
-                        <Select
-                            label="filter"
-                            options={filters}
-                            selected={top}
-                            handleSelect={selectHandler}
-                        />
-                        <div style={{ paddingLeft: "calc(var(--gc) * 2)" }}>
-                            <Label text="prestine" id="button-reset" />
-                            <Button
-                                type="outlined"
-                                onClick={handleReset}
-                                id="button-reset"
-                            >
-                                reset
-                            </Button>
-                        </div>
-                    </div>
-                    <Autocomplete
-                        trie={trie}
-                        label="add skill"
-                        placeholder="try typing react or smth"
-                        handlePick={handleAddSkill}
+                    <Controls
+                        data={data}
+                        dataset={dataset}
+                        update={setDataset}
                     />
-                    <div className="occurences__graph-container">
-                        <ParentSize>
-                            {({ width, height }) => (
-                                <Graph
-                                    height={height}
-                                    width={width}
-                                    dataset={dataset}
-                                />
-                            )}
-                        </ParentSize>
-                    </div>
-                    <Keys keys={keys} />
+                    <OccurencesGraph dataset={dataset} />
                 </>
             )}
         </div>
