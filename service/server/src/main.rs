@@ -40,7 +40,9 @@ async fn main() -> Result<(), std::io::Error> {
                 pool: pool.clone(),
                 static_dir: static_dir.clone(),
             })
-            .service(web::scope("/api").route("/skills", web::get().to(handlers::skills)))
+            .service(web::scope("/api").service(
+                web::scope("/skills").route("/dominance", web::get().to(handlers::skills)),
+            ))
             .service(Files::new(&static_path, static_dir.clone()).prefer_utf8(true))
             .route("/", web::get().to(index))
     })

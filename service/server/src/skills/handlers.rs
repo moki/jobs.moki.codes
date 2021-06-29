@@ -1,25 +1,16 @@
 use std::collections::BTreeMap;
 use std::collections::HashMap;
+use std::iter::repeat;
 use std::iter::FromIterator;
 
 use actix_web::{web, HttpResponse, Responder};
-//use chrono::{DateTime, Duration, Utc};
 use chrono::{Duration, Utc};
 use serde::{Deserialize, Serialize};
 
-//use clickhouse_rs::Pool;
 use futures::stream::StreamExt;
 
 use crate::Context;
 use crate::Result;
-
-/*
-#[derive(Deserialize)]
-pub struct Query {
-    from: Option<String>,
-    to: Option<String>,
-}
-*/
 
 #[derive(Debug, Serialize, Deserialize)]
 struct SkillIRData {
@@ -34,32 +25,6 @@ struct SkillColumnarData {
     occurences: Vec<u64>,
     total_occurences: u64,
 }
-
-/*
-async fn parse_query(q: &web::Query<Query>) -> (String, String) {
-    let from = match &q.from {
-        Some(from) => match DateTime::parse_from_rfc3339(from) {
-            Ok(from) => from.format("%Y%m%d").to_string(),
-            _ => (Utc::now() - Duration::days(30))
-                .format("%Y%m%d")
-                .to_string(),
-        },
-        _ => (Utc::now() - Duration::days(30))
-            .format("%Y%m%d")
-            .to_string(),
-    };
-
-    let to = match &q.to {
-        Some(to) => match DateTime::parse_from_rfc3339(to) {
-            Ok(to) => to.format("%Y%m%d").to_string(),
-            _ => Utc::now().format("%Y%m%d").to_string(),
-        },
-        _ => Utc::now().format("%Y%m%d").to_string(),
-    };
-
-    return (from, to);
-}
-*/
 
 async fn retrieve_data<T>(
     ctx: web::Data<Context>,
@@ -90,64 +55,106 @@ where
     Ok(date_skills)
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct SkillInfo {
+    skill_occurences: HashMap<String, u64>,
+    total_occurences: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct SkillColumnar {
+    name: String,
+    dates: Vec<u32>,
+    dominance: Vec<f32>,
+    total_occurences: u64,
+}
+
 // TODO: cache data
-async fn aggregate_data<T>(
-    ctx: web::Data<Context>,
-    from: T,
-    to: T,
-) -> Result<Vec<SkillColumnarData>>
+async fn aggregate_data<T>(ctx: web::Data<Context>, from: T, to: T) -> Result<Vec<SkillColumnar>>
 where
     T: AsRef<str> + std::fmt::Display,
 {
     let data = retrieve_data(ctx, from, to).await?;
 
-    let mut skill_skill_data = HashMap::new();
+    let dates: Vec<u32> = data.clone().into_iter().map(|(d, _)| d).collect();
 
-    let dates = BTreeMap::from_iter(data.clone().into_iter().map(|(d, _)| (d, 0)).into_iter());
+    let mut date_skill = BTreeMap::from_iter(
+        data.clone()
+            .into_iter()
+            .map(|(d, _)| {
+                (
+                    d,
+                    SkillInfo {
+                        total_occurences: 0,
+                        skill_occurences: HashMap::new(),
+                    },
+                )
+            })
+            .into_iter(),
+    );
 
     for (date, skills) in &data {
-        for skill in skills {
-            let skill_entry = skill_skill_data.entry(skill).or_insert(SkillIRData {
-                date_occurences: dates.clone(),
-                total_occurences: 0,
-            });
+        let date_entry = date_skill.get_mut(date).unwrap();
 
-            if let Some(date_entry) = skill_entry.date_occurences.get_mut(date) {
-                *date_entry += 1;
-                skill_entry.total_occurences += 1;
+        for skill in skills {
+            if let Some(skill_entry) = date_entry.skill_occurences.get_mut(skill) {
+                *skill_entry += 1;
+            } else {
+                date_entry.skill_occurences.insert(skill.clone(), 1);
             }
+
+            date_entry.total_occurences += 1;
         }
     }
 
-    let mut skill_columnar_data = Vec::with_capacity(skill_skill_data.len());
+    let mut skill_dominance: HashMap<String, SkillColumnar> = HashMap::new();
 
-    for (name, value) in &skill_skill_data {
-        skill_columnar_data.push(SkillColumnarData {
-            name: (*name).to_owned(),
-            dates: Vec::from_iter(value.date_occurences.keys().map(|&k| k)),
-            occurences: Vec::from_iter(value.date_occurences.values().map(|&v| v)),
-            total_occurences: value.total_occurences,
-        });
+    let mut i = 0;
+
+    for (_, date_entry) in &date_skill {
+        for (name, occured) in &date_entry.skill_occurences {
+            let skill_dominance_entry =
+                skill_dominance
+                    .entry(name.clone())
+                    .or_insert(SkillColumnar {
+                        name: name.clone(),
+                        dates: dates.clone(),
+                        dominance: repeat(0_f32).take(dates.len()).collect(),
+                        total_occurences: 0,
+                    });
+
+            skill_dominance_entry.dominance[i] =
+                100_f32 * ((*occured) as f64 / (date_entry.total_occurences) as f64) as f32;
+            skill_dominance_entry.total_occurences += occured;
+        }
+
+        i = i + 1;
     }
 
-    skill_columnar_data.sort_by(|a, b| b.total_occurences.cmp(&a.total_occurences));
+    let mut skill_columnar = skill_dominance
+        .values()
+        .cloned()
+        .collect::<Vec<SkillColumnar>>();
 
-    Ok(skill_columnar_data)
+    skill_columnar.sort_by(|a, b| b.total_occurences.cmp(&a.total_occurences));
+
+    Ok(skill_columnar)
 }
 
-//pub async fn skills(pool: web::Data<Pool>, q: web::Query<Query>) -> impl Responder {
 // temp: serve only last month worth of data
 pub async fn skills(ctx: web::Data<Context>) -> impl Responder {
-    //let (from, to) = parse_query(&q).await;
-    let (from, to) = (
-        (Utc::now() - Duration::days(30))
-            .format("%Y%m%d")
-            .to_string(),
-        Utc::now().format("%Y%m%d").to_string(),
-    );
+    let right = Utc::now() - Duration::days(1);
+    let left = right - Duration::days(30);
 
-    match aggregate_data(ctx, from, to).await {
+    let left = left.format("%Y%m%d").to_string();
+    let right = right.format("%Y%m%d").to_string();
+
+    match aggregate_data(ctx, left, right).await {
         Ok(data) => HttpResponse::Ok().json(data),
-        _ => HttpResponse::BadRequest().body("400"),
+        Err(error) => {
+            println!("{}", error);
+
+            return HttpResponse::BadRequest().body("400");
+        }
     }
 }
