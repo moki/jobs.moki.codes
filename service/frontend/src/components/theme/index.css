@@ -1,3 +1,59 @@
+@font-face {
+    font-family: roboto-mono;
+    src: url("font/roboto-mono-bold.ttf");
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: roboto-mono;
+    src: url("font/roboto-mono-sbold.ttf");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: roboto-mono;
+    src: url("font/roboto-mono-medium.ttf");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: roboto-mono;
+    src: url("font/roboto-mono-regular.ttf");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: roboto-mono;
+    src: url("font/roboto-mono-light.ttf");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: roboto-mono;
+    src: url("font/roboto-mono-xlight.ttf");
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: roboto-mono;
+    src: url("font/roboto-mono-thin.ttf");
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+
 .theme {
     --gc: 4px;
 
@@ -6,9 +62,7 @@
 }
 
 .theme_typography {
-    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
-        Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif,
-        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    font-family: roboto-mono;
 
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;

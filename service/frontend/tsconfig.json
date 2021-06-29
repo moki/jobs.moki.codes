@@ -3,7 +3,8 @@
     "baseUrl": ".",
     "paths": {
       "src/": ["src/*"],
-      "lib/": ["lib/*"]
+      "lib/": ["lib/*"],
+      "fonts/": ["font/*"]
     },
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,

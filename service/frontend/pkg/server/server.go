@@ -141,7 +141,8 @@ func (s *DevServer) configureHotReload() {
 		Watch: &api.WatchMode{
 			OnRebuild: s.handleRebuild,
 		},
-		Write: true,
+		Write:  true,
+		Loader: map[string]api.Loader{".ttf": api.LoaderDataURL},
 	})
 
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
