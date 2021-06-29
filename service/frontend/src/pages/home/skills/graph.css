@@ -1,0 +1,59 @@
+.dominance-graph__tooltip {
+    position: absolute;
+    z-index: 100;
+    opacity: 1;
+
+    padding: calc(var(--gc) * 4);
+
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+
+    box-shadow: 0 0 0 1px var(--color-on-surface);
+
+    pointer-events: none;
+}
+
+.dominance-graph-tooltip__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: calc(var(--gc) * 1) 0 !important;
+
+    border-bottom: 1px solid var(--color-on-surface);
+}
+
+.dominance-graph-tooltip__item:first-child {
+    padding-top: 0 !important;
+}
+
+.dominance-graph-tooltip__item:last-child {
+    padding-bottom: 0 !important;
+
+    border: none;
+}
+
+.dominance-graph-tooltip-item__key {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dominance-graph-tooltip-item__color {
+    display: inline-block;
+
+    height: calc(var(--gc) * 4);
+    width: calc(var(--gc) * 4);
+}
+
+.dominance-graph-tooltip-item__heading {
+    padding: 0 0 0 calc(var(--gc) * 2) !important;
+
+    font-weight: 500 !important;
+}
+
+.dominance-graph-tooltip-item__body {
+    padding: 0 0 0 calc(var(--gc) * 4) !important;
+
+    font-weight: 400 !important;
+}

@@ -6,7 +6,7 @@ import { Heading } from "src/components/heading";
 import { SubHeading } from "src/components/sub-heading";
 import { Text } from "src/components/text";
 
-import { Occurences } from "./occurences";
+import { Dominance } from "./dominance";
 
 import "./index.css";
 
@@ -23,7 +23,7 @@ export function Skills() {
                 <Text.Component tag="p">
                     Exploring requirements trends in the job postings.
                 </Text.Component>
-                <Occurences />
+                <Dominance />
             </Container.Component>
         </Section.Component>
     );

@@ -1,0 +1,32 @@
+.graph-keys {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    margin-top: calc(var(--gc) * 2);
+    gap: var(--gc);
+}
+
+.graph-keys-key__image,
+.graph-keys-key__image > rect {
+    width: calc(var(--gc) * 3);
+    height: calc(var(--gc) * 3);
+}
+
+.graph-keys__key {
+    display: flex;
+}
+
+.graph-keys-key__text {
+    font-size: calc(var(--gc) * 4);
+    line-height: calc(var(--gc) * 4);
+    font-weight: 400;
+
+    margin: 0 var(--gc) !important;
+}
+
+@media screen and (min-width: 720px) {
+    .graph-keys {
+        margin-top: calc(var(--gc) * 4);
+    }
+}

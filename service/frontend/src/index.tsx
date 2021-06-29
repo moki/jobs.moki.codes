@@ -16,6 +16,11 @@ import { Home } from "src/pages/home";
 
 import "./index.css";
 
+export type CustomWindow = {
+    debug: boolean;
+} & Window &
+    typeof globalThis;
+
 function App() {
     let { classes } = Theme();
 
@@ -41,4 +46,4 @@ function App() {
     );
 }
 
-ReactDOM.render(<App />, document.body);
+ReactDOM.render(<App />, document.querySelector("#app"));

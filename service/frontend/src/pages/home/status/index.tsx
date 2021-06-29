@@ -56,8 +56,9 @@ function Implemented() {
     const is = [
         "skills",
         [
-            "daily occurences",
+            "dominance",
             ["dataset querying", ["top filters", "individual skill"]],
+            ["tooltip"],
         ],
     ];
 
@@ -67,7 +68,7 @@ function Implemented() {
                 Implemented
             </Heading>
             <SubHeading tag="p" level={3}>
-                implemented features
+                features
             </SubHeading>
             <StatusList items={is} />
         </div>
@@ -80,19 +81,15 @@ function Unimplemented() {
     const us = [
         "skills",
         [
-            "daily occurences",
+            "dominance",
             [
-                "tooltip",
-                [
-                    "display occurences at date",
-                    "display total occurences in the dataset",
-                ],
-                "delete skill",
+                "dataset querying",
+                ["exclude skill", "presets e.g: backend/frontend skills"],
             ],
-            "salary boxplot",
-            "percentage representation",
-            "links between each other",
+            "chords",
         ],
+        "salary",
+        ["boxplot", "range distribution"],
         "dataset",
         ["block—list", "merge—list"],
     ];
@@ -103,7 +100,7 @@ function Unimplemented() {
                 Unimplemented
             </Heading>
             <SubHeading tag="p" level={3}>
-                unimplemented features
+                features
             </SubHeading>
             <StatusList items={us} />
         </div>

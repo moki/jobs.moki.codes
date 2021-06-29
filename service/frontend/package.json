@@ -7,8 +7,8 @@
   "license": "BSD-3-Clause",
   "devDependencies": {
     "@types/d3-array": "^2.12.1",
-    "@types/react": "^17.0.10",
-    "@types/react-dom": "^17.0.7",
+    "@types/react": "*",
+    "@types/react-dom": "*",
     "@typescript-eslint/eslint-plugin": "*",
     "@typescript-eslint/parser": "*",
     "eslint": "*",
@@ -16,22 +16,26 @@
     "eslint-plugin-babel": "*",
     "eslint-plugin-react": "*",
     "prettier": "*",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "typescript": "*"
+    "typescript": "*",
+    "react": "^16.4.0-0",
+    "react-dom": "^16.4.0-0"
   },
   "dependencies": {
-    "@types/ramda": "^0.27.40",
-    "@visx/axis": "^1.12.0",
-    "@visx/curve": "^1.7.0",
-    "@visx/grid": "^1.12.0",
-    "@visx/group": "^1.7.0",
-    "@visx/legend": "^1.11.1",
-    "@visx/marker": "^1.12.0",
-    "@visx/responsive": "^1.10.1",
-    "@visx/scale": "^1.11.1",
-    "@visx/shape": "^1.12.0",
-    "d3-array": "^3.0.1",
-    "ramda": "^0.27.1"
+    "@types/ramda": "*",
+    "@visx/axis": "*",
+    "@visx/curve": "*",
+    "@visx/event": "*",
+    "@visx/grid": "*",
+    "@visx/group": "*",
+    "@visx/legend": "*",
+    "@visx/marker": "*",
+    "@visx/responsive": "*",
+    "@visx/scale": "*",
+    "@visx/shape": "*",
+    "@visx/tooltip": "*",
+    "@visx/xychart": "*",
+    "d3-array": "*",
+    "ramda": "*",
+    "react-spring": "^8.0.27"
   }
 }

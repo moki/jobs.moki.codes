@@ -1,6 +1,10 @@
 .status__implemented,
 .status__unimplemented {
-    padding-top: calc(var(--gc) * 4);
+    padding-top: calc(var(--gc) * 2);
+
+    font-size: calc(var(--gc) * 3);
+    line-height: calc(var(--gc) * 4);
+    font-weight: 300;
 }
 
 .status__list {
@@ -14,7 +18,10 @@
 @media screen and (min-width: 720px) {
     .status__implemented,
     .status__unimplemented {
-        padding-top: calc(var(--gc) * 8);
+        padding-top: calc(var(--gc) * 4);
+
+        font-size: calc(var(--gc) * 4);
+        line-height: calc(var(--gc) * 4);
     }
 
     .status__list {
