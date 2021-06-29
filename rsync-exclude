@@ -1,5 +1,7 @@
 service/server/target
+service/server/config
 service/extract_transform_load/target
 service/extract_transform_load/data
 service/extract_transform_load/internals
+service/extract_transform_load/config
 service/frontend
