@@ -19,6 +19,7 @@
 }
 
 .sub-heading_level_3 {
+    padding-top: calc(var(--gc) * 1);
     padding-bottom: calc(var(--gc) * 1);
 
     font-size: calc(var(--gc) * 2);
