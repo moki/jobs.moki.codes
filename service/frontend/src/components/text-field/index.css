@@ -16,18 +16,15 @@
     color: var(--color-on-surface);
 
     border: none;
+    border-radius: 0;
     outline: none;
+
     box-shadow: 0 0 0 1px var(--color-on-surface);
 
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -o-user-select: none;
-    user-select: none;
+    -webkit-appearance: none;
 }
 
 .text-field__input::placeholder {
