@@ -1,5 +1,7 @@
+pub mod salaries;
 pub mod service;
 pub mod skills;
+pub mod stats;
 
 use clickhouse_rs::Pool;
 

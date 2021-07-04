@@ -8,18 +8,12 @@ use actix_web::{middleware, web, App, HttpServer, Result as ActixResult};
 use clickhouse_rs::Pool;
 
 use server::service::Config;
-use server::skills::handlers;
+
+use server::salaries;
+use server::skills;
+
 use server::Context;
 use server::Result;
-
-async fn index(ctx: web::Data<Context>) -> ActixResult<NamedFile> {
-    let i = format!(
-        "{}",
-        Path::new(&ctx.static_dir).join("index.html").display()
-    );
-
-    Ok(NamedFile::open(i)?)
-}
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -40,13 +34,30 @@ async fn main() -> Result<(), std::io::Error> {
                 pool: pool.clone(),
                 static_dir: static_dir.clone(),
             })
-            .service(web::scope("/api").service(
-                web::scope("/skills").route("/dominance", web::get().to(handlers::skills)),
-            ))
+            .service(
+                web::scope("/api")
+                    .service(
+                        web::scope("/skills")
+                            .route("/dominance", web::get().to(skills::handlers::dominance)),
+                    )
+                    .service(web::scope("/salaries").route(
+                        "/quartiles-and-counts",
+                        web::get().to(salaries::handlers::quartiles_and_counts),
+                    )),
+            )
             .service(Files::new(&static_path, static_dir.clone()).prefer_utf8(true))
             .route("/", web::get().to(index))
     })
     .bind(format!("{}:{}", server_config.host, server_config.port))?
     .run()
     .await
+}
+
+async fn index(ctx: web::Data<Context>) -> ActixResult<NamedFile> {
+    let i = format!(
+        "{}",
+        Path::new(&ctx.static_dir).join("index.html").display()
+    );
+
+    Ok(NamedFile::open(i)?)
 }

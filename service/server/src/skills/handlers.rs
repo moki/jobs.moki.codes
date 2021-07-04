@@ -142,7 +142,7 @@ where
 }
 
 // temp: serve only last month worth of data
-pub async fn skills(ctx: web::Data<Context>) -> impl Responder {
+pub async fn dominance(ctx: web::Data<Context>) -> impl Responder {
     let right = Utc::now() - Duration::days(1);
     let left = right - Duration::days(30);
 
