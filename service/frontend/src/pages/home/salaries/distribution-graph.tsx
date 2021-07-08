@@ -61,7 +61,7 @@ function DistributionGraphComponent({
     ).sort((a, b) => a - b);
 
     const glyphWidth = useMemo(
-        () => ((9 * width) / 16 / dataset.length) * 7,
+        () => (width > 600 ? ((9 * width) / 16 / dataset.length) * 10 : 80),
         [width, dataset]
     );
 
