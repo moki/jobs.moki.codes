@@ -109,6 +109,13 @@
   dependencies:
     "@types/d3-path" "^1"
 
+"@types/d3-shape@^1.3.2":
+  version "1.3.7"
+  resolved "https://registry.yarnpkg.com/@types/d3-shape/-/d3-shape-1.3.7.tgz#cefd0eeecd98059e232c706be344d09508e0a7b8"
+  integrity sha512-jdrLlW7qscZlcy4NvOMA6s4LrgShqQ18cxVWbXmigauN+UmhLer8SGZdrBdiN7gUm+sk0wIrDA6zOcjrZnicwA==
+  dependencies:
+    "@types/d3-path" "^1"
+
 "@types/d3-time@^2":
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@types/d3-time/-/d3-time-2.1.1.tgz#743fdc821c81f86537cbfece07093ac39b4bc342"
@@ -364,6 +371,16 @@
     classnames "^2.2.5"
     prop-types "^15.6.2"
 
+"@visx/pattern@*":
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@visx/pattern/-/pattern-1.7.0.tgz#4b4392b976f57592d836b2055dc606aa7b0192d9"
+  integrity sha512-uIrGDtm7NqDfZZneRZ/DRdZA0nli/13sIUcxQ0oRL70b6ul+epNGiBVR8pvrgMhZ+SW3b05xhfEDnfnl2CqFQw==
+  dependencies:
+    "@types/classnames" "^2.2.9"
+    "@types/react" "*"
+    classnames "^2.2.5"
+    prop-types "^15.5.10"
+
 "@visx/point@1.7.0":
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/@visx/point/-/point-1.7.0.tgz#1df3c3425eae464f498473bcdda2fcae05c8ecbe"
@@ -425,7 +442,21 @@
     lodash "^4.17.15"
     prop-types "^15.5.10"
 
-"@visx/text@1.10.0":
+"@visx/stats@*":
+  version "1.14.0"
+  resolved "https://registry.yarnpkg.com/@visx/stats/-/stats-1.14.0.tgz#f690cf6b7bb0ed712e8c22463419411bb992aba9"
+  integrity sha512-WQIC8y0LIvSo+Qc7/GFYZnw6GkIvkCjvv9PqqUaIC49Dd4GZ9T2CWRJy1Axxx5OxNKLGku6iQQkeM55Ko14nsQ==
+  dependencies:
+    "@types/classnames" "^2.2.9"
+    "@types/d3-shape" "^1.3.2"
+    "@types/react" "*"
+    "@visx/group" "1.7.0"
+    "@visx/scale" "1.14.0"
+    classnames "^2.2.5"
+    d3-shape "^1.2.0"
+    prop-types "^15.5.10"
+
+"@visx/text@1.10.0", "@visx/text@^1.10.0":
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/@visx/text/-/text-1.10.0.tgz#d9b9fb3d195f6843312025dc672b958529d2d4f6"
   integrity sha512-2y56LxbbSHAlu8XP0cARB9JlhPx0HlQyIC4iKUzj36+iJaBiw9wUwLb9RbT/rY715V+6VzU7WCNCxoa4lDr9Sg==

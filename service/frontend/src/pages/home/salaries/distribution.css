@@ -1,0 +1,46 @@
+.salaries-distribution {
+    padding-top: calc(var(--gc) * 4);
+}
+
+.salaries-distribution__container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+
+    margin-top: calc(var(--gc) * 2);
+    padding: calc(var(--gc) * 8);
+
+    box-shadow: 0 0 0 1px var(--color-on-surface);
+}
+
+@media screen and (min-width: 720px) {
+    .salaries-distribution {
+        padding-top: calc(var(--gc) * 8);
+    }
+
+    .salaries-distribution__container {
+        height: 100%;
+
+        margin-top: calc(var(--gc) * 6);
+    }
+}
+
+/* visx responsive hacks start */
+.salaries-distribution-container__responsive,
+.salaries-distribution-container__responsive svg {
+    overflow: visible !important;
+}
+
+.salaries-distribution-container__responsive > div {
+    overflow: visible !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+}
+/* visx responsive hacks end */

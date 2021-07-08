@@ -43,13 +43,21 @@
     z-index: 1;
 }
 
-/*
-.layout_hg__main .section:last-of-type {
-    background-color: var(--color-background);
+.visx-axis-tick,
+.visx-axis-line,
+.visx-axis-tick > line,
+.visx-axis-tick > svg > text {
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+/Edge */
+    user-select: none; /* Standard */
 }
 
-.layout_hg__main .section:last-of-type::after,
-.layout_hg__main .section:last-of-type::before {
-    display: none;
+.visx-axis-line,
+.visx-axis-tick > line {
+    stroke: var(--color-on-background) !important;
 }
-*/
+
+.visx-axis-tick > svg > text {
+    fill: var(--color-on-background) !important;
+}

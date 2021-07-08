@@ -16,9 +16,9 @@
     "eslint-plugin-babel": "*",
     "eslint-plugin-react": "*",
     "prettier": "*",
-    "typescript": "*",
     "react": "^16.4.0-0",
-    "react-dom": "^16.4.0-0"
+    "react-dom": "^16.4.0-0",
+    "typescript": "*"
   },
   "dependencies": {
     "@types/ramda": "*",
@@ -29,9 +29,12 @@
     "@visx/group": "*",
     "@visx/legend": "*",
     "@visx/marker": "*",
+    "@visx/pattern": "*",
     "@visx/responsive": "*",
     "@visx/scale": "*",
     "@visx/shape": "*",
+    "@visx/stats": "*",
+    "@visx/text": "^1.10.0",
     "@visx/tooltip": "*",
     "@visx/xychart": "*",
     "d3-array": "*",

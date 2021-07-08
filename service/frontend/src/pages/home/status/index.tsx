@@ -8,6 +8,83 @@ import { Text } from "src/components/text";
 
 import "./index.css";
 
+export function Status() {
+    return (
+        <Section.Component>
+            <Container.Component>
+                <Heading tag="h3" level={2}>
+                    Status
+                </Heading>
+                <SubHeading tag="p" level={2}>
+                    tracking progress
+                </SubHeading>
+                <Text.Component tag="p">
+                    Progress so far and plans for the future.
+                </Text.Component>
+                <Implemented />
+                <Unimplemented />
+            </Container.Component>
+        </Section.Component>
+    );
+}
+
+function Implemented() {
+    const classes = "status__implemented";
+
+    const is = [
+        "skills",
+        [
+            "dominance",
+            ["dataset querying", ["top filters", "individual skill"]],
+            ["tooltip"],
+        ],
+        "salaries",
+        ["distribution", ["box plot", "violin plot"], ["tooltip"]],
+    ];
+
+    return (
+        <div className={classes}>
+            <Heading tag="h4" level={3}>
+                Implemented
+            </Heading>
+            <SubHeading tag="p" level={3}>
+                features
+            </SubHeading>
+            <StatusList items={is} />
+        </div>
+    );
+}
+
+function Unimplemented() {
+    const classes = "status__unimplemented";
+
+    const us = [
+        "skills",
+        [
+            "dominance",
+            [
+                "dataset querying",
+                ["exclude skill", "presets e.g: backend/frontend skills"],
+            ],
+            "chords",
+        ],
+        "dataset",
+        ["block—list", "merge—list"],
+    ];
+
+    return (
+        <div className={classes}>
+            <Heading tag="h4" level={3}>
+                Unimplemented
+            </Heading>
+            <SubHeading tag="p" level={3}>
+                features
+            </SubHeading>
+            <StatusList items={us} />
+        </div>
+    );
+}
+
 type StatusListItemProps = {
     depth: number;
 } & HTMLProps<HTMLLIElement>;
@@ -48,81 +125,4 @@ function StatusList({ items }: StatusListProps) {
         );
 
     return <ul className={classes}>{render(items)}</ul>;
-}
-
-function Implemented() {
-    const classes = "status__implemented";
-
-    const is = [
-        "skills",
-        [
-            "dominance",
-            ["dataset querying", ["top filters", "individual skill"]],
-            ["tooltip"],
-        ],
-    ];
-
-    return (
-        <div className={classes}>
-            <Heading tag="h4" level={3}>
-                Implemented
-            </Heading>
-            <SubHeading tag="p" level={3}>
-                features
-            </SubHeading>
-            <StatusList items={is} />
-        </div>
-    );
-}
-
-function Unimplemented() {
-    const classes = "status__unimplemented";
-
-    const us = [
-        "skills",
-        [
-            "dominance",
-            [
-                "dataset querying",
-                ["exclude skill", "presets e.g: backend/frontend skills"],
-            ],
-            "chords",
-        ],
-        "salary",
-        ["boxplot", "range distribution"],
-        "dataset",
-        ["block—list", "merge—list"],
-    ];
-
-    return (
-        <div className={classes}>
-            <Heading tag="h4" level={3}>
-                Unimplemented
-            </Heading>
-            <SubHeading tag="p" level={3}>
-                features
-            </SubHeading>
-            <StatusList items={us} />
-        </div>
-    );
-}
-
-export function Status() {
-    return (
-        <Section.Component>
-            <Container.Component>
-                <Heading tag="h3" level={2}>
-                    Status
-                </Heading>
-                <SubHeading tag="p" level={2}>
-                    tracking progress
-                </SubHeading>
-                <Text.Component tag="p">
-                    Progress so far and plans for the future.
-                </Text.Component>
-                <Implemented />
-                <Unimplemented />
-            </Container.Component>
-        </Section.Component>
-    );
 }
