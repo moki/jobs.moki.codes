@@ -15,15 +15,43 @@ import { Label } from "src/components/label";
 import { Select, Option } from "src/components/select";
 import { Button } from "src/components/button";
 import { Autocomplete } from "src/components/autocomplete";
+import { Loader } from "src/components/loader";
 
 import { ParentSize } from "@visx/responsive";
 
-import { Graph } from "src/pages/home/skills/graph";
+import { DominanceGraph } from "src/pages/home/skills/dominance-graph";
 import { Keys } from "src/pages/home/skills/keys";
 
 import { CustomWindow } from "src/index";
 
 import "./dominance.css";
+
+export function Dominance() {
+    const classes = "skills-dominance";
+
+    return (
+        <div className={classes}>
+            <DominanceHeader />
+            <DominanceContainer />
+        </div>
+    );
+}
+
+export function DominanceHeader() {
+    return (
+        <>
+            <Heading tag="h4" level={3}>
+                Dominance
+            </Heading>
+            <SubHeading tag="p" level={3}>
+                over others
+            </SubHeading>
+            <Text.Component tag="p">
+                This graph depicts skill popularity.
+            </Text.Component>
+        </>
+    );
+}
 
 export type Skill = {
     name: string;
@@ -33,6 +61,63 @@ export type Skill = {
 };
 
 export type State = Skill[];
+
+const endpoint = "api/skills/dominance";
+//const endpoint = "https://jobs.moki.codes/api/skills/dominance";
+
+const selector = (o: any): Skill[] => o;
+
+function DominanceContainer() {
+    const initial: State = [];
+
+    const [setUrl, data, error, loading, restart] = fetcher(
+        endpoint,
+        "GET",
+        initial,
+        selector
+    );
+
+    const [dataset, setDataset] = useState<Skill[]>([]);
+
+    useEffect(() => {
+        if (error) restart(10000);
+    }, [error]);
+
+    const colors = useMemo(
+        () =>
+            palette(dataset.length).map(
+                (color) =>
+                    `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, ${color[3]}%)`
+            ),
+        [dataset]
+    );
+
+    if (loading || error)
+        return (
+            <div className="skills-dominance__graph-container">
+                <Loader />
+            </div>
+        );
+
+    return (
+        <>
+            <Controls data={data} dataset={dataset} update={setDataset} />
+            <div className="skills-dominance__graph-container">
+                <ParentSize className="skills-dominance-graph-container__responsive">
+                    {({ width, height }) => (
+                        <DominanceGraph
+                            height={height}
+                            width={width}
+                            dataset={dataset}
+                            palette={colors}
+                        />
+                    )}
+                </ParentSize>
+            </div>
+            <Keys dataset={dataset} palette={colors} />
+        </>
+    );
+}
 
 export type ControlsProps = {
     data: Skill[];
@@ -87,7 +172,7 @@ export function Controls({ data, dataset, update }: ControlsProps) {
     useEffect(() => update(data.slice(0, top.v)), [top]);
 
     return (
-        <div className="dominance__controls">
+        <div className="skills-dominance__controls">
             <Select
                 label="filter"
                 options={filters}
@@ -106,86 +191,6 @@ export function Controls({ data, dataset, update }: ControlsProps) {
                 placeholder="try typing react or smth"
                 handlePick={handleAddSkill}
             />
-        </div>
-    );
-}
-
-export type DominanceGraphProps = {
-    dataset: Skill[];
-};
-
-function DominanceGraph({ dataset }: DominanceGraphProps) {
-    const colors = useMemo(
-        () =>
-            palette(dataset.length).map(
-                (color) =>
-                    `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, ${color[3]}%)`
-            ),
-        [dataset]
-    );
-
-    return (
-        <>
-            <div className="dominance__graph-container">
-                <ParentSize className="dominance-graph-container__responsive">
-                    {({ width, height }) => (
-                        <Graph
-                            height={height}
-                            width={width}
-                            dataset={dataset}
-                            palette={colors}
-                        />
-                    )}
-                </ParentSize>
-            </div>
-            <Keys dataset={dataset} palette={colors} />
-        </>
-    );
-}
-
-const endpoint = "api/skills/dominance";
-
-const selector = (o: any): Skill[] => o;
-
-export function Dominance() {
-    const classes = "dominance";
-
-    const initial: State = [];
-
-    const [setUrl, data, error, loading, restart] = fetcher(
-        endpoint,
-        "GET",
-        initial,
-        selector
-    );
-
-    const [dataset, setDataset] = useState<Skill[]>([]);
-
-    useEffect(() => {
-        if (error) restart(10000);
-    }, [error]);
-
-    return (
-        <div className={classes}>
-            <Heading tag="h4" level={3}>
-                Dominance
-            </Heading>
-            <SubHeading tag="p" level={3}>
-                over other skills
-            </SubHeading>
-            <Text.Component tag="p">
-                This graph depicts skill popularity.
-            </Text.Component>
-            {!loading && !error && (
-                <>
-                    <Controls
-                        data={data}
-                        dataset={dataset}
-                        update={setDataset}
-                    />
-                    <DominanceGraph dataset={dataset} />
-                </>
-            )}
         </div>
     );
 }

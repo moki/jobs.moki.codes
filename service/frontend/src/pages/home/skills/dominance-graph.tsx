@@ -25,7 +25,7 @@ import { SubHeading } from "src/components/sub-heading";
 
 import { State, Skill } from "src/pages/home/skills/dominance";
 
-import "./graph.css";
+import "./dominance-graph.css";
 
 const ID = {
     s: "tooltip-",
@@ -101,15 +101,20 @@ function TooltipContent({ content }: { content: TooltipData }) {
     );
 }
 
-export type GraphProps = {
+export type DominanceGraphProps = {
     dataset: State;
     width: number;
     height: number;
     palette: string[];
 } & HTMLProps<HTMLDivElement>;
 
-export const Graph = memo(
-    function Graph({ dataset, palette, width, height }: GraphProps) {
+export const DominanceGraph = memo(
+    function DominanceGraph({
+        dataset,
+        palette,
+        width,
+        height,
+    }: DominanceGraphProps) {
         if (!dataset.length)
             return (
                 <div className="dominance__graph-placeholder">
@@ -332,7 +337,7 @@ export const Graph = memo(
             </>
         );
     },
-    (previous: GraphProps, next: GraphProps) =>
+    (previous: DominanceGraphProps, next: DominanceGraphProps) =>
         !previous.dataset.length &&
         JSON.stringify(previous.dataset) === JSON.stringify(next.dataset)
 );

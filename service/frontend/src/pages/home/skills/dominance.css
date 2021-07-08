@@ -1,10 +1,10 @@
-.dominance {
+.skills-dominance {
     padding-top: calc(var(--gc) * 4);
 
     min-height: calc(var(--gc) * 75);
 }
 
-.dominance__controls {
+.skills-dominance__controls {
     display: flex;
 
     justify-content: stretch;
@@ -15,10 +15,15 @@
     margin: calc(var(--gc) * 2) 0;
 }
 
-.dominance__graph-container {
+.skills-dominance__graph-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
     height: calc(var(--gc) * 75);
     min-height: calc(var(--gc) * 75);
     width: 100%;
+    margin-top: calc(var(--gc) * 2);
 
     padding: calc(var(--gc) * 8);
 
@@ -26,48 +31,48 @@
 }
 
 @media screen and (min-width: 720px) {
-    .dominance {
+    .skills-dominance {
         min-height: calc(var(--gc) * 101);
 
         padding-top: calc(var(--gc) * 8);
     }
 
-    .dominance__controls {
+    .skills-dominance__controls {
         margin: calc(var(--gc) * 4) 0;
     }
 
-    .dominance__graph-container {
+    .skills-dominance__graph-container {
         height: calc(var(--gc) * 101);
     }
 }
 
 @media screen and (min-width: 1200px) {
-    .dominance {
+    .skills-dominance {
         min-height: calc(var(--gc) * 168);
     }
 
-    .dominance__graph-container {
+    .skills-dominance__graph-container {
         height: calc(var(--gc) * 168);
     }
 }
 
 @media screen and (min-width: 1600px) {
-    .dominance {
+    .skills-dominance {
         min-height: calc(var(--gc) * 225);
     }
 
-    .dominance__graph-container {
+    .skills-dominance__graph-container {
         height: calc(var(--gc) * 225);
     }
 }
 
 /* visx responsive hacks start */
-.dominance-graph-container__responsive,
-.dominance-graph-container__responsive svg {
+.skills-dominance-graph-container__responsive,
+.skills-dominance-graph-container__responsive svg {
     overflow: visible !important;
 }
 
-.dominance-graph-container__responsive > div {
+.skills-dominance-graph-container__responsive > div {
     overflow: visible !important;
     display: flex;
     justify-content: center;
