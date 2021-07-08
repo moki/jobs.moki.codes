@@ -8,7 +8,7 @@ use crate::stats;
 use crate::Context;
 use crate::Result;
 
-const QUERY: &str = "select arrayJoin(skills), salary_avg, salary_currency from jobs_moki_codes.jobs where salary_avg is not null and salary_currency is not null and notEmpty(skills) and (salary_currency = 'RUR' or salary_currency = 'KZT' or salary_currency = 'EUR' or salary_currency = 'USD')";
+const QUERY: &str = "select arrayJoin(skills), salary_avg, salary_currency from jobs_moki_codes.jobs where salary_avg is not null and salary_currency is not null and notEmpty(skills) and (salary_currency = 'RUR' or salary_currency = 'EUR' or salary_currency = 'USD')";
 
 pub async fn quartiles_and_counts(ctx: web::Data<Context>) -> impl Responder {
     let data = match retrieve(ctx).await {
@@ -34,6 +34,8 @@ const RUB: f64 = 0.014;
 const KZT: f64 = 0.0024;
 const EUR: f64 = 1.19;
 
+const SALARY_LIMIT: f64 = 30000_f64;
+
 #[derive(Debug, Serialize)]
 struct SkillData {
     name: String,
@@ -58,7 +60,9 @@ async fn transform_data(data: &[(String, String, u64)]) -> Result<Vec<SkillData>
             _ => return Err("failed convert")?,
         };
 
-        entry.push(converted.round() as u64);
+        if converted < SALARY_LIMIT {
+            entry.push(converted.round() as u64);
+        }
     }
 
     skill_salaries.retain(|_, v: &mut Vec<u64>| v.len() > 90);
