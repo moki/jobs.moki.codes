@@ -80,7 +80,9 @@ async fn transform_data(data: &[(String, String, u64)]) -> Result<Vec<SkillData>
             *entry += 1;
         }
 
-        let salary_count: Vec<(u64, usize)> = salary_count.into_iter().collect();
+        let mut salary_count: Vec<(u64, usize)> = salary_count.into_iter().collect();
+
+        salary_count.sort_by(|a, b| a.0.cmp(&b.0));
 
         let mut outliers_low: Vec<u64> = Vec::new();
         let mut outliers_up: Vec<u64> = Vec::new();
